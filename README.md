@@ -1,2 +1,2 @@
 # smokehouse
-The smoker thermometer
+The smokehouse thermometer (posibly IOT?)
