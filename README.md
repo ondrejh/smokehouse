@@ -4,14 +4,14 @@ The smokehouse thermometer (posibly IOT?)
 
 ## Install DB ##
 
-'''
+```
 sudo apt install mariadb-server
 mysql_secure_installation
 
 sudo mysql
-'''
+```
 
-'''sql
+```sql
 CREATE DATABASE uzeniTest;
 SHOW DATABASES;
 CREATE USER udirna@localhost IDENTIFIED BY 'udirna123';
@@ -20,4 +20,4 @@ GRANT ALL PRIVILEGES ON uzeniTest.* to udirna@localhost;
 FLUSH PRIVILEGES;
 SHOW GRANTS FOR udirna@localhost;
 SELECT user,authentication_string,plugin,host FROM mysql.user;
-'''
+```
