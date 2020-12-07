@@ -1,0 +1,2 @@
+# smokehouse
+The smoker thermometer
