@@ -30,6 +30,6 @@ sudo systemctl restart apache2.service
 
 ## Next steps ##
 
-[ ] post some data to server (test)
-[ ] receive and decode (json) data
-[ ] save it to db
+- [ ] post some data to server (test)
+- [ ] receive and decode (json) data
+- [ ] save it to db
