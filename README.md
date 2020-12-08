@@ -27,3 +27,9 @@ sudo apt install php libapache2-mod-php
 sudo apt install php-mysql php-gd
 sudo systemctl restart apache2.service
 ```
+
+## Next steps ##
+
+[ ] post some data to server (test)
+[ ] receive and decode (json) data
+[ ] save it to db
