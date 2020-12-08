@@ -21,3 +21,9 @@ FLUSH PRIVILEGES;
 SHOW GRANTS FOR udirna@localhost;
 SELECT user,authentication_string,plugin,host FROM mysql.user;
 ```
+
+```
+sudo apt install php libapache2-mod-php
+sudo apt install php-mysql php-gd
+sudo systemctl restart apache2.service
+```
