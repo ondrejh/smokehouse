@@ -7,6 +7,7 @@
     <script src="script.js"></script> -->
   </head>
   <body>
+	<?php include "const.php";?>
     <h1>Test page</h1>
 	<!--<p>This is the page content.</p>
 	<form method="post" action="data_input.php">
@@ -15,8 +16,8 @@
 	  <input type="submit">
 	</form>-->
 	<p>Test with json.</p>
-	<input type="text" id="value">
-	<button onclick="sendFunction()">Click to send data</button>
+	<input type="text" id="value"><br />
+	<button onclick="sendFunction()">Click to send data</button><br />
 	<button onclick="myAlert()">Test alert</button>
 
 	<script>
