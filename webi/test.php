@@ -10,8 +10,7 @@
     <h1>Test page</h1>
 	<p>This is the page content.</p>
 	<form method="post" action="data_input.php">
-	  Name: <input type="text" name="name"><br>
-	  Password: <input type="text" name="passwd"><br>
+	  <input type="hidden" name="key" value="<?php include "consts.php"; echo KEY; ?>"><br>
 	  Data: <input type="text" name="data"><br>
 	  <input type="submit">
 	</form>

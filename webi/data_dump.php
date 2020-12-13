@@ -13,7 +13,7 @@
 		include "consts.php";
 		
 	    $db = new SQLite3(DB_FILE);
-		$query = "SELECT * FROM udirna;";
+		$query = "SELECT * FROM ". NODE_TABLE. ";";
 		$res = $db->query($query);
 		while ($row = $res->fetchArray()) {
 		  echo "<tr><td>{$row[0]}</td><td>{$row[1]}</td><td>{$row[2]}</td></tr>\n";
