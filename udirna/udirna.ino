@@ -192,7 +192,7 @@ bool push_data_to_server(float t) {
     //http.begin("http://192.168.88.230/test/data_input.php");
     //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     sprintf(post, "{\"key\":\"blablabla\", \"data\":\"%d.%d\"}", it, dt);
-    http.begin("http://192.168.88.230/test/data_input_json.php");
+    http.begin(DATAIN);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
     String payload = http.getString();
