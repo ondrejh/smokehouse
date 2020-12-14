@@ -29,6 +29,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
+#include <ESP8266HTTPClient.h>
+
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 
@@ -166,22 +168,49 @@ void setup(void) {
   display_wifi();
 }
 
-void read_temperature(void) {
+int read_temperature(void) {
   uint16_t rtd = thermo.readRTD();
 
-  //Serial.print("RTD value: "); Serial.println(rtd);
-  //float ratio = rtd;
-  //ratio /= 32768;
-  //Serial.print("Ratio = "); Serial.println(ratio,8);
-  //Serial.print("Resistance = "); Serial.println(RREF*ratio,8);
   float t = thermo.temperature(RNOMINAL, RREF);
-  //if ((temp > -50.0) && (temp < 300.0)) {
-  //  temp_valid = true;
-    temp = t * 10;
-  //}
+  int it = round(t * 10);
+
   Serial.print("Temperature ");
   Serial.print(t);
   Serial.println(" C");
+
+  return it;
+}
+
+bool push_data_to_server(float t) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    int it, dt;
+    it = t / 10;
+    dt = t - it * 10;
+    char post[64];
+    //sprintf(post, "key=blablabla&data=%d.%d", it, dt);
+    //http.begin("http://192.168.88.230/test/data_input.php");
+    //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    sprintf(post, "{\"key\":\"blablabla\", \"data\":\"%d.%d\"}", it, dt);
+    http.begin("http://192.168.88.230/test/data_input_json.php");
+    http.addHeader("Content-Type", "application/json");
+    int httpCode = http.POST(post);
+    String payload = http.getString();
+    http.end();
+
+    Serial.print("POST ");
+    Serial.print(it);
+    Serial.print(".");
+    Serial.print(dt);
+    Serial.print(" ");
+    Serial.print(httpCode);
+    Serial.print(" ");
+    Serial.println(payload);
+
+    if (payload == "OK")
+      return true;
+  }
+  return false;
 }
 
 void loop(void) {
@@ -193,7 +222,8 @@ void loop(void) {
   uint32_t now = millis();
   if ((now - temp_t) > 30000) {
     temp_t = now;
-    read_temperature();
+    temp = read_temperature();
+    push_data_to_server(temp);
   }
 
   static int disp = 1;
