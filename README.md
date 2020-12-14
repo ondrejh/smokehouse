@@ -33,6 +33,7 @@ sudo systemctl restart apache2.service
 - [X] post some data to server (test)
 - [X] receive and decode (json) data
 - [X] save it to db (sqlite)
+- [ ] update sketch !!!
 - [ ] mysql
 - [ ] public server
 - [ ] better scheme (user, node, data)
