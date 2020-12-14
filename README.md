@@ -30,7 +30,7 @@ sudo systemctl restart apache2.service
 
 ## Next steps (HW / FW) ##
 
-- [ ] update sketch !!!
+- [X] update sketch !!!
 - [ ] add the second thremocoupler
 - [ ] draw the schematic
 
@@ -39,6 +39,6 @@ sudo systemctl restart apache2.service
 - [X] post some data to server (test)
 - [X] receive and decode (json) data
 - [X] save it to db (sqlite)
-- [ ] mysql
-- [ ] public server
+- [X] mysql
+- [X] public server
 - [ ] better scheme (user, node, data)
