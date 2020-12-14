@@ -30,6 +30,9 @@ sudo systemctl restart apache2.service
 
 ## Next steps ##
 
-- [ ] post some data to server (test)
-- [ ] receive and decode (json) data
-- [ ] save it to db
+- [X] post some data to server (test)
+- [X] receive and decode (json) data
+- [X] save it to db (sqlite)
+- [ ] mysql
+- [ ] public server
+- [ ] better scheme (user, node, data)
