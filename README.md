@@ -38,7 +38,7 @@ sudo systemctl restart apache2.service
 - [ ] connect to webi as t_simple
 - [ ] add the second thermocoupler
 - [ ] draw the schematic
-- [ ] use device registration (unique id, key)
+- [X] use device registration (unique id, key)
 
 ## Next steps (WEBI) ##
 
@@ -49,4 +49,6 @@ sudo systemctl restart apache2.service
 - [X] public server
 - [X] better scheme (users, devices, data)
 - [X] register new device
-- [ ] list devices
+- [X] list devices
+- [ ] device edit (edit name, delete)
+- [ ] smoker device scheme
