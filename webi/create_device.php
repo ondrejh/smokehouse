@@ -7,8 +7,8 @@
     <script src="script.js"></script> -->
   </head>
   <body>
-    <h1>Vytvoření nového zařízení</h1>
-	<p>Na této stránce je možné vytvořit nové zařízení pro uživatele. Výstupem procesu je pak klíč, který bude zařízení používat k přístupu k databázi. Tento klíč je třeba do zařízení zadat.</p>
+    <h1>Registrace nového zařízení</h1>
+	<p>Na této stránce je možné zaregistrovat nové zařízení. Výstupem procesu je pak klíč, který bude zařízení používat k přístupu k databázi. Tento klíč je třeba do zařízení zadat pro jeho aktivaci.</p>
     <?php
       include "core/utils.php";
     
@@ -68,9 +68,9 @@
       
       else {
         // user login form
-        echo "<p>Pro vytvoření zařízení musí být uživatel přihlášen.</p>". PHP_EOL;
+        echo "<p>Pro pokračováni se musíš přihlásit.</p>". PHP_EOL;
         echo "<form method='post' action='". $_SERVER['PHP_SELF']. "'>". PHP_EOL;
-        echo "Jméno: <input type='text' name='user'><br />". PHP_EOL;
+        echo "Přihlašovací jméno: <input type='text' name='user'><br />". PHP_EOL;
         echo "Heslo: <input type='password' name='password'><br />". PHP_EOL;
         echo "<input type='submit'>";
         echo "</form>". PHP_EOL;

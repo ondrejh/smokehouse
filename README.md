@@ -35,8 +35,9 @@ sudo systemctl restart apache2.service
 ## Next steps (HW / FW) ##
 
 - [X] update sketch !!!
-- [ ] add the second thremocoupler
+- [ ] add the second thermocoupler
 - [ ] draw the schematic
+- [ ] use device registration (unique id, key)
 
 ## Next steps (WEBI) ##
 
@@ -45,4 +46,6 @@ sudo systemctl restart apache2.service
 - [X] save it to db (sqlite)
 - [X] mysql
 - [X] public server
-- [ ] better scheme (user, node, data)
+- [X] better scheme (users, devices, data)
+- [X] register new device
+- [ ] list devices
