@@ -8,6 +8,21 @@ include "dbauth.php";
 #const PASWD = "user123";
 #const DBNAME = "testdb";
 
+function getDeviceByKey($keystr) {
+  $conn = new mysqli(SERVER, USER, PASWD, DBNAME);
+  $query = "SELECT device.id, device.idstr, types.name FROM devices INNER JOIN types ON devices.typeid=types.id WHERE keystr = ". $keystr. ";";
+  $res = $conn->query($query);
+  $conn->close();
+  if ($res->num_rows > 0) {
+	$row = $res->fetch_row();
+	$array['id'] = $row[0];
+	$array['idstr'] = $row[1];
+	$array['type'] = $row[2];
+	return $array;
+  } 
+  return null;
+}
+
 function checkUser($user, $password, $retval) {
   $conn = new mysqli(SERVER, USER, PASWD, DBNAME);
   $query = "SELECT id, nick, password FROM users WHERE name = '". $user. "';";

@@ -68,6 +68,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 // 100.0 for PT100, 1000.0 for PT1000
 #define RNOMINAL  100.0
 
+char idstr[16] = "";
+
 // Use software SPI: CS, DI, DO, CLK
 //Adafruit_MAX31865 thermo = Adafruit_MAX31865(D8, D7, D6, D5); // 10k pulldown on D8
 Adafruit_MAX31865 thermo = Adafruit_MAX31865(15, 13, 12, 14); // 10k pulldown on D8
@@ -165,6 +167,10 @@ void setup(void) {
   
   timeClient.begin();
 
+  uint8_t mac[6];
+  wifi_get_macaddr(STATION_IF, mac);
+  sprintf(idstr, "d1mini%02X%02X%02X", mac[3], mac[4], mac[5]);
+
   display_wifi();
 }
 
@@ -191,7 +197,7 @@ bool push_data_to_server(float t) {
     //sprintf(post, "key=blablabla&data=%d.%d", it, dt);
     //http.begin("http://192.168.88.230/test/data_input.php");
     //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    sprintf(post, "{\"key\":\"blablabla\", \"data\":\"%d.%d\"}", it, dt);
+    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"data\":\"%d.%d\"}", KEY, idstr, it, dt);
     http.begin(DATAIN);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
@@ -199,12 +205,13 @@ bool push_data_to_server(float t) {
     http.end();
 
     Serial.print("POST ");
+    Serial.print(post);
+    Serial.print(" ");
     Serial.print(it);
     Serial.print(".");
     Serial.print(dt);
     Serial.print(" ");
-    Serial.print(httpCode);
-    Serial.print(" ");
+    Serial.println(httpCode);
     Serial.println(payload);
 
     if (payload == "OK")
