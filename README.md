@@ -35,6 +35,7 @@ sudo systemctl restart apache2.service
 ## Next steps (HW / FW) ##
 
 - [X] update sketch !!!
+- [ ] connect to webi as t_simple
 - [ ] add the second thermocoupler
 - [ ] draw the schematic
 - [ ] use device registration (unique id, key)
