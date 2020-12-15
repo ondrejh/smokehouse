@@ -52,3 +52,4 @@ sudo systemctl restart apache2.service
 - [X] list devices
 - [ ] device edit (edit name, delete)
 - [ ] smoker device scheme
+- [ ] dump t_simple data
