@@ -1,2 +1,3 @@
 distr
 secret_consts.php
+core/dbauth.php
