@@ -2,6 +2,10 @@
 
 The smokehouse thermometer (posibly IOT?)
 
+## DB scheme ##
+
+![Database scheme](/doc/db_scheme.png)
+
 ## Install DB ##
 
 ```
@@ -12,13 +16,13 @@ sudo mysql
 ```
 
 ```sql
-CREATE DATABASE uzeniTest;
+CREATE DATABASE devices;
 SHOW DATABASES;
-CREATE USER udirna@localhost IDENTIFIED BY 'udirna123';
+CREATE USER devAdmin@localhost IDENTIFIED BY 'devAdm123';
 SELECT User FROM mysql.user;
-GRANT ALL PRIVILEGES ON uzeniTest.* to udirna@localhost;
+GRANT ALL PRIVILEGES ON devices.* to devAdmin@localhost;
 FLUSH PRIVILEGES;
-SHOW GRANTS FOR udirna@localhost;
+SHOW GRANTS FOR devAdmin@localhost;
 SELECT user,authentication_string,plugin,host FROM mysql.user;
 ```
 
