@@ -24,8 +24,10 @@ The IOT smokehouse thermometer using standard web server as the interface.
 - [X] better scheme (users, devices, data)
 - [X] register new device
 - [X] list devices
-- [ ] smoker device scheme
+- [X] smoker device scheme (theory)
+- [X] keg scale device scheme (theory)
 - [ ] dump t_simple data
+- [ ] connect TH device
 
 ## Install LAMP ##
 
