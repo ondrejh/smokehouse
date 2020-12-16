@@ -1,0 +1,12 @@
+open ftp_server_url
+ftp_user_name
+ftp_user_password
+
+put create_device.php
+put list_devices.php
+
+cd core
+put core/datain.php
+put core/utils.php
+
+quit
