@@ -47,7 +47,8 @@
               $dev_key = $row['keystr'];
               $dev_active = ($row['idstr'] == null) ? 'NE' : 'ANO';
               $edit_form = "<form method='post' action='". $_SERVER['PHP_SELF']. "'><input type='hidden' name='user' value='". $user. "'><input type='hidden' name='password' value='". $pwd. "'><input type='hidden' name='dev_id' value='". $dev_id. "'><input type='hidden' name='action' value='change_name'><input type='text' name='dev_name' value = '". $dev_name. "'><input type='submit' value='Upravit'></form>";
-              echo "<tr><td>". $edit_form. "</td><td>". $dev_type. "</td><td>". $dev_key. "</td><td>". $dev_active. "</td></tr>". PHP_EOL;
+              $enter_form = "<form method='post' action='show_device.php'><input type='hidden' name='user' value='". $user. "'><input type='hidden' name='password' value='". $pwd. "'><input type='hidden' name='dev_id' value='". $dev_id. "'><input type='submit' value='Otevřít'></form>";
+              echo "<tr><td>". $edit_form. "</td><td>". $dev_type. "</td><td>". $dev_key. "</td><td>". $dev_active. "</td><td>". $enter_form. "</td></tr>". PHP_EOL;
             }
             echo "<table>". PHP_EOL;
           }
