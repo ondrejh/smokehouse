@@ -29,13 +29,22 @@
 
 #include <ESP8266HTTPClient.h>
 
-//#include "password.h"
+#include "DHT.h"
+
+#include "password.h"
 
 #ifndef STASSID
 #define STASSID "wifi_ssid"
 #define STAPSK  "wifi_password"
 #define KEY     "12345678"
 #endif
+
+#define DHTPIN D5
+#define DHTTYPE DHT21
+#define SENSOR_ID "AM2301"
+
+DHT dht(DHTPIN, DHTTYPE);
+float humi, temp;
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
@@ -126,8 +135,11 @@ void setup(void) {
   Serial.println("HTTP server started");
   
   uint8_t mac[6];
-  wifi_get_macaddr(STATION_IF, mac);
+  //wifi_get_macaddr(STATION_IF, mac);
+  WiFi.macAddress(mac);
   sprintf(idstr, "d1mini%02X%02X%02X", mac[3], mac[4], mac[5]);
+
+  dht.begin();
 }
 
 int read_temperature(void) {
@@ -138,17 +150,18 @@ int read_temperature(void) {
   return 0;
 }
 
-bool push_data_to_server(float t) {
+bool push_data_to_server(float t, float h) {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    int it, dt;
+    int it, dt, ih;
     it = t / 10;
     dt = t - it * 10;
+    ih = int(h);
     char post[64];
     //sprintf(post, "key=blablabla&data=%d.%d", it, dt);
     //http.begin("http://192.168.88.230/test/data_input.php");
     //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"data\":\"%d.%d\"}", KEY, idstr, it, dt);
+    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"data\":{\"temp\":\"%d.%d\", \"humi\":\"%d\"}}", KEY, idstr, it, dt, ih);
     http.begin(DATAIN);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
@@ -157,10 +170,6 @@ bool push_data_to_server(float t) {
 
     Serial.print("POST ");
     Serial.print(post);
-    Serial.print(" ");
-    Serial.print(it);
-    Serial.print(".");
-    Serial.print(dt);
     Serial.print(" ");
     Serial.println(httpCode);
     Serial.println(payload);
@@ -172,15 +181,38 @@ bool push_data_to_server(float t) {
 }
 
 void loop(void) {
-  timeClient.update();
   server.handleClient();
   MDNS.update();
 
-  static uint32_t temp_t = 30001;
+  /*static uint32_t temp_t = 30001;
   uint32_t now = millis();
   if ((now - temp_t) > 30000) {
     temp_t = now;
-    temp = read_temperature();
-    push_data_to_server(temp);
+    //temp = read_temperature();
+    read_humitemp();
+    push_data_to_server(temp, humi);
+  }*/
+
+  static uint32_t dht_timer = 0;
+  static uint32_t dht_timeout = 0;
+  static bool dht_status = false;
+  uint32_t now = millis();
+  if ((now - dht_timer) >= dht_timeout) {
+    dht_timer = now;
+    float v = dht_status?dht.readHumidity():dht.readTemperature();
+    if (isnan(v))
+      dht_timeout = 500;
+    else {
+      dht_timeout = dht_status?59900:100;
+      // report humidity
+      Serial.print(SENSOR_ID);
+      Serial.print(" ");
+      Serial.print(v);
+      Serial.println(dht_status?" %":" *C");
+      if (dht_status) humi = v;
+      else temp = v;
+      push_data_to_server(temp, humi);
+    }
+    dht_status = !dht_status;
   }
 }
