@@ -168,7 +168,7 @@ void setup(void) {
   timeClient.begin();
 
   uint8_t mac[6];
-  wifi_get_macaddr(STATION_IF, mac);
+  WiFi.macAddress(mac);
   sprintf(idstr, "d1mini%02X%02X%02X", mac[3], mac[4], mac[5]);
 
   display_wifi();
