@@ -29,15 +29,26 @@ The IOT smokehouse thermometer using standard web server as the interface.
 
 ## Install LAMP ##
 
+Install Apache
+--------------
+
 ```
 sudo apt update
 sudo apt install apache2
+```
 
+Install MySQL
+-------------
+
+```
 sudo apt install mariadb-server
 mysql_secure_installation
 
 sudo mysql
 ```
+
+Create database
+---------------
 
 ```sql
 CREATE DATABASE devices;
@@ -50,8 +61,29 @@ SHOW GRANTS FOR devAdmin@localhost;
 SELECT user,authentication_string,plugin,host FROM mysql.user;
 ```
 
+Install PHP
+-----------
+
 ```
 sudo apt install php libapache2-mod-php
 sudo apt install php-mysql php-gd
 sudo systemctl restart apache2.service
+```
+
+Set privileges
+--------------
+
+```
+cd /var/www
+sudo chown -R www-data:www-data html
+sudo chmod 775 html
+cd html
+sudo chmod 664 *
+```
+
+Add user into www-data group
+----------------------------
+
+```
+sudo usermod -aG www-data <username>
 ```
