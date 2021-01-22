@@ -65,7 +65,7 @@
           echo "{x: '". $data[$i][0]. "', y: ". $data[$i][1]. "}";
         }
         echo "]". PHP_EOL. "}]},". PHP_EOL;
-        echo "options: {legend: {display: false}, elements: { point:{ radius: 0 }}, scales: { xAxes: [{ type: 'time', time: { format: timeFormat, tooltipFormat: 'll'}, scaleLabel: { display: true, labelString: 'Čas'}}], yAxes: [{ scaleLabel: { display: true, labelString: 'Teplota °C' }}]}}});</script>". PHP_EOL;
+        echo "options: {legend: {display: false}, elements: { point:{ radius: 0 }}, scales: { xAxes: [{ type: 'time', time: { format: timeFormat, tooltipFormat: 'll'}, scaleLabel: { display: true, labelString: 'Čas'}}], yAxes: [{ticks: {beginAtZero: true}, scaleLabel: { display: true, labelString: 'Teplota °C' }}]}}});</script>". PHP_EOL;
         //echo "<p>". $query. "</p>". PHP_EOL;
         $conn->close();
       }
