@@ -10,12 +10,12 @@ void display_wifi() {
   sprintf(buff, "IP: %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
   blen = strlen(buff);
   display.setCursor(64 - blen*3, 20);     // Start at top-left corner
-  display.write(buff);
+  display.print(buff);
 
   sprintf(buff, "SSID: %s", ssid);
   blen = strlen(buff);
   display.setCursor(64 - blen*3, 4);     // Start at top-left corner
-  display.write(buff);  
+  display.print(buff);  
 
   display.display();
 }
@@ -34,12 +34,12 @@ void display_time() {
   sprintf(buff, "%2d:%02d", timeClient.getHours(), timeClient.getMinutes());
   blen = strlen(buff);
   display.setCursor(64 - blen*9, 10);     // Start at top-left corner
-  display.write(buff);
+  display.print(buff);
 
   display.display();
 }
 
-void display_temp() {
+void display_temp(uint8_t s) {
   display.clearDisplay();
   display.setTextSize(3);      // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
@@ -47,22 +47,21 @@ void display_temp() {
   
   char buff[16];
   int blen;
-  int t = temp / 10;
+  int t = temp[s] / 10;
   int dt;
   if (temp >= 0)
-    dt = temp - t * 10;
+    dt = temp[s] - t * 10;
   else
-    dt = -temp + t*10;
+    dt = -temp[s] + t*10;
   sprintf(buff, "%d.%01d C", t,dt);
   blen = strlen(buff);
   int xs = 64 - blen*9;
   display.setCursor(xs, 10);     // Start at top-left corner
-  display.write(buff);
+  display.print(buff);
 
   display.setTextSize(2);
   display.setCursor(xs + blen*18 - 32, 5);
-  display.write("o");
+  display.print("o");
 
   display.display();
-  
 }

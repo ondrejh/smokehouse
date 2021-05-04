@@ -41,14 +41,16 @@
 #ifndef STASSID
 #define STASSID "wifi_ssid"
 #define STAPSK  "wifi_password"
+#define KEY "123456"
+#define DATAIN "789ABC"
 #endif
 
-const long utcOffsetInSeconds = 3600;
+const long utcOffsetInSeconds = 7200;
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
 
-int temp;
+int temp[2];
 
 // display
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -72,7 +74,8 @@ char idstr[16] = "";
 
 // Use software SPI: CS, DI, DO, CLK
 //Adafruit_MAX31865 thermo = Adafruit_MAX31865(D8, D7, D6, D5); // 10k pulldown on D8
-Adafruit_MAX31865 thermo = Adafruit_MAX31865(15, 13, 12, 14); // 10k pulldown on D8
+Adafruit_MAX31865 thermo1 = Adafruit_MAX31865(2, 13, 12, 14);
+Adafruit_MAX31865 thermo2 = Adafruit_MAX31865(0, 13, 12, 14);
 
 const int led = 13;
 
@@ -128,7 +131,8 @@ void handleNotFound() {
 void setup(void) {
   Serial.begin(115200);
 
-  thermo.begin(MAX31865_3WIRE);  // set to 2WIRE or 4WIRE as necessary
+  thermo1.begin(MAX31865_3WIRE);
+  thermo2.begin(MAX31865_3WIRE);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))// Address 0x3C for 128x32
@@ -174,30 +178,44 @@ void setup(void) {
   display_wifi();
 }
 
-int read_temperature(void) {
-  uint16_t rtd = thermo.readRTD();
+int read_temperature(uint8_t s) {
+  if (s > 1) return 0;
+  
+  float t;
+  uint16_t rtd;
+  if (s == 0) {
+    rtd = thermo1.readRTD();
+    t = thermo1.temperature(RNOMINAL, RREF);
+  }
+  else {
+    rtd = thermo2.readRTD();
+    t = thermo2.temperature(RNOMINAL, RREF);
+  }
 
-  float t = thermo.temperature(RNOMINAL, RREF);
   int it = round(t * 10);
 
   Serial.print("Temperature ");
+  Serial.print(s + 1);
+  Serial.print(" ");
   Serial.print(t);
   Serial.println(" C");
 
   return it;
 }
 
-bool push_data_to_server(float t) {
+bool push_data_to_server(float t1, float t2) {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    int it, dt;
-    it = t / 10;
-    dt = t - it * 10;
+    int it1, dt1, it2, dt2;
+    it1 = t1 / 10;
+    dt1 = t1 - it1 * 10;
+    it2 = t2 / 10;
+    dt2 = t2 - it2 * 10;
     char post[64];
     //sprintf(post, "key=blablabla&data=%d.%d", it, dt);
     //http.begin("http://192.168.88.230/test/data_input.php");
     //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"data\":\"%d.%d\"}", KEY, idstr, it, dt);
+    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"data\":[\"%d.%d\", \"%d.%d\"]}", KEY, idstr, it1, dt1, it2, dt2);
     http.begin(DATAIN);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
@@ -207,9 +225,13 @@ bool push_data_to_server(float t) {
     Serial.print("POST ");
     Serial.print(post);
     Serial.print(" ");
-    Serial.print(it);
+    Serial.print(it1);
     Serial.print(".");
-    Serial.print(dt);
+    Serial.print(dt1);
+    Serial.print(" ");
+    Serial.print(it2);
+    Serial.print(".");
+    Serial.print(dt2);
     Serial.print(" ");
     Serial.println(httpCode);
     Serial.println(payload);
@@ -227,10 +249,14 @@ void loop(void) {
 
   static uint32_t temp_t = 30001;
   uint32_t now = millis();
+  static uint8_t s = 0;
   if ((now - temp_t) > 30000) {
-    temp_t = now;
-    temp = read_temperature();
-    push_data_to_server(temp);
+    temp[s] = read_temperature(s++);
+    if (s == 2) {
+      push_data_to_server(temp[0], temp[1]);
+      temp_t = now;
+      s = 0;
+    }
   }
 
   static int disp = 1;
@@ -247,7 +273,7 @@ void loop(void) {
         disp ++;
       break;
       case 2: // TEMP
-        display_temp();
+        display_temp(0);
         disp = 0;
       break;
     }
