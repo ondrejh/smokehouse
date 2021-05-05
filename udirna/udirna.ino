@@ -42,7 +42,7 @@
 #define STASSID "wifi_ssid"
 #define STAPSK  "wifi_password"
 #define KEY "123456"
-#define DATAIN "789ABC"
+#define DATAIN "http://www.foo.bar/baz.php"
 #endif
 
 const long utcOffsetInSeconds = 7200;
@@ -272,8 +272,12 @@ void loop(void) {
         display_time();
         disp ++;
       break;
-      case 2: // TEMP
+      case 2: // TEMP 1
         display_temp(0);
+        disp ++;
+      break;
+      case 3: // TEMP 2
+        display_temp(1);
         disp = 0;
       break;
     }

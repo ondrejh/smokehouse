@@ -41,21 +41,28 @@ void display_time() {
 
 void display_temp(uint8_t s) {
   display.clearDisplay();
-  display.setTextSize(3);      // Normal 1:1 pixel scale
+  display.setTextSize(2);      // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
+
+  display.setCursor(0, 0);
+  display.print(s + 1);
+  display.setTextSize(3);      // Normal 1:1 pixel scale
   
   char buff[16];
   int blen;
   int t = temp[s] / 10;
   int dt;
-  if (temp >= 0)
+  if (temp[s] >= 0)
     dt = temp[s] - t * 10;
   else
-    dt = -temp[s] + t*10;
-  sprintf(buff, "%d.%01d C", t,dt);
+    dt = -temp[s] + t * 10;
+  if ((t >= 100) || (t <= -10))
+    sprintf(buff, "%d C", t);
+  else
+    sprintf(buff, "%d.%01d C", t, dt);
   blen = strlen(buff);
-  int xs = 64 - blen*9;
+  int xs = 70 - blen*9;
   display.setCursor(xs, 10);     // Start at top-left corner
   display.print(buff);
 
