@@ -33,8 +33,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     else if ($dev_type == 'th_simple') {
     }
+    else if ($dev_type == 't_double') {
+	  $query = "CREATE TABLE IF NOT EXISTS dev_". $keystr. "(id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY, temp1 REAL, temp2 REAL, tstmp DATETIME DEFAULT CURRENT_TIMESTAMP);";
+	  $conn->query($query);
+	  $query = "INSERT INTO dev_". $keystr. "(temp1, temp2) VALUES (". $data[0]. ", ". $data[1]. ");";
+      //echo $query;
+	  $conn->query($query);
+	  if ($dev_idstr == null) {
+		$query = "UPDATE devices SET idstr = '". $idstr. "' WHERE id = ". $dev_id. ";";
+		$conn->query($query);
+	  }
+	  $conn->close();
+	  echo "OK";
     }
-    echo "ERROR: Device not recognised"; 
+    else {
+      echo "ERROR: Device not recognised"; 
+    }
+  }  
 }
 else echo "ERROR: NO POST";
 ?>
