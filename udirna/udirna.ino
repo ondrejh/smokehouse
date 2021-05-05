@@ -211,7 +211,7 @@ bool push_data_to_server(float t1, float t2) {
     dt1 = t1 - it1 * 10;
     it2 = t2 / 10;
     dt2 = t2 - it2 * 10;
-    char post[64];
+    char post[128];
     //sprintf(post, "key=blablabla&data=%d.%d", it, dt);
     //http.begin("http://192.168.88.230/test/data_input.php");
     //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
