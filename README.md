@@ -2,6 +2,11 @@
 
 The IOT smokehouse thermometer using standard web server as the interface.
 
+## Thermometer HW
+
+![schematic](/doc/schematic.png)
+![board](/doc/board.png)
+
 ## DB scheme ##
 
 ![Database scheme](/doc/db_scheme.png)
@@ -11,8 +16,9 @@ The IOT smokehouse thermometer using standard web server as the interface.
 - [X] update sketch !!!
 - [X] use device registration (unique id, key)
 - [X] connect to webi as t_simple
-- [ ] add the second thermocoupler
-- [ ] draw the schematic
+- [X] add the second thermocoupler
+- [X] draw schematic
+- [X] design pcb
 
 ## Next steps (WEBI) ##
 
