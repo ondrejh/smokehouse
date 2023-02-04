@@ -6,6 +6,7 @@
 #include <Adafruit_MAX31865.h>
 
 #include "secret_password.h"
+#include "button.h"
 
 #ifndef STASSID
 #define STASSID "ssid"
@@ -14,6 +15,7 @@
 
 #define TEMP_READ_PERIOD_MS 10000
 #define DISPLAY_CYCLE_PERIOD_MS 5000
+#define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
@@ -21,6 +23,7 @@ const char *password = STAPSK;
 ESP8266WebServer server(80);
 
 const int led = 13;
+const int btnPin = 16;
 
 int temp[2];
 
@@ -32,99 +35,7 @@ char idstr[16] = "";
 Adafruit_MAX31865 thermo1 = Adafruit_MAX31865(2, 13, 12, 14);
 Adafruit_MAX31865 thermo2 = Adafruit_MAX31865(0, 13, 12, 14);
 
-void handleRoot() {
-  digitalWrite(led, 1);
-  char temp[400];
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
-
-  snprintf(temp, 400,
-
-           "<html>\
-  <head>\
-    <meta http-equiv='refresh' content='5'/>\
-    <title>ESP8266 Demo</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Hello from ESP8266!</h1>\
-    <p>Uptime: %02d:%02d:%02d</p>\
-    <img src=\"/test.svg\" />\
-  </body>\
-</html>",
-
-           hr, min % 60, sec % 60
-          );
-  server.send(200, "text/html", temp);
-  digitalWrite(led, 0);
-}
-
-void handleData() {
-  String msg = "{\"key\":\"";
-  msg += key;
-  msg += "\",\"idstr\":\"";
-  msg += idstr;
-  msg += "\",\"data\":[";
-  for (int i=0; i<2; i++) {
-    int t = temp[i] / 10;
-    int dt;
-    if (temp[i] >= 0)
-      dt = temp[i] - t * 10;
-    else
-      dt = -temp[i] + t * 10;
-    if (i > 0)
-      msg += ",";
-    msg += "\"";
-    msg += t;
-    msg += ".";
-    msg += dt;
-    msg += "\"";
-  }
-  msg += "]}";
-
-  server.send(200, "application/json", msg);
-}
-
-void handleNotFound() {
-  digitalWrite(led, 1);
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-
-  server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
-}
-
-void drawGraph() {
-  String out;
-  out.reserve(2600);
-  char temp[70];
-  out += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"400\" height=\"150\">\n";
-  out += "<rect width=\"400\" height=\"150\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
-  out += "<g stroke=\"black\">\n";
-  int y = rand() % 130;
-  for (int x = 10; x < 390; x += 10) {
-    int y2 = rand() % 130;
-    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 140 - y, x + 10, 140 - y2);
-    out += temp;
-    y = y2;
-  }
-  out += "</g>\n</svg>\n";
-
-  server.send(200, "image/svg+xml", out);
-}
+Button btn = Button(btnPin);
 
 void setup(void) {
   pinMode(led, OUTPUT);
@@ -135,6 +46,7 @@ void setup(void) {
 
   display_init();
 
+  // create device id string
   uint8_t mac[6];
   WiFi.macAddress(mac);
   sprintf(idstr, "esp%02X%02X%02X", mac[3], mac[4], mac[5]);
@@ -145,7 +57,9 @@ void setup(void) {
   Serial.println("");
 
   // Wait for connection
+  int cnt = 0;
   while (WiFi.status() != WL_CONNECTED) {
+    cnt ++;
     delay(500);
     Serial.print(".");
   }
@@ -177,6 +91,10 @@ void loop(void) {
   server.handleClient();
   MDNS.update();
 
+  btn.poll();
+  if (btn.press) Serial.println("Pressed");
+  if (btn.release) Serial.println("Release");
+
   static uint32_t tempT = TEMP_READ_PERIOD_MS;
   if ((now - tempT) >= TEMP_READ_PERIOD_MS) {
     tempT = now;  
@@ -187,8 +105,10 @@ void loop(void) {
 
   static uint32_t dispT = 0;
   static int disp = 0;
-  if ((now - dispT) >= DISPLAY_CYCLE_PERIOD_MS) {
+  static uint32_t period = DISPLAY_CYCLE_PERIOD_MS;
+  if ( ((now - dispT) >= period) || btn.press ) {
     dispT = now;
+    period = btn.press ? BUTTON_PRESS_CYCLE_PAUSE_MS : DISPLAY_CYCLE_PERIOD_MS;
 
     switch (disp) {
       case 0:
