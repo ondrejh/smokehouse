@@ -57,7 +57,7 @@ void display_temp(uint8_t s) {
   display.display();
 }
 
-void display_wifi() {
+void display_wifi(char *ssid, IPAddress ip) {
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
@@ -65,7 +65,7 @@ void display_wifi() {
   
   char buff[32];
   int blen;
-  IPAddress ip = WiFi.localIP();
+  //IPAddress ip = WiFi.localIP();
   sprintf(buff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
   blen = strlen(buff);
   display.setCursor(64 - blen*3, 20);     // Start at top-left corner

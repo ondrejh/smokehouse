@@ -17,8 +17,15 @@
 #define DISPLAY_CYCLE_PERIOD_MS 5000
 #define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
 
+#define AP_PASSWORD "temPr321"
+IPAddress ap_ip(192,168,42,1);
+IPAddress ap_mask(255,255,255,0);
+
 const char *ssid = STASSID;
 const char *password = STAPSK;
+
+char disp_ssid[32];
+IPAddress disp_ip;
 
 ESP8266WebServer server(80);
 
@@ -50,7 +57,7 @@ void setup(void) {
   // create device id string
   uint8_t mac[6];
   WiFi.macAddress(mac);
-  sprintf(idstr, "esp%02X%02X%02X", mac[3], mac[4], mac[5]);
+  sprintf(idstr, "Temp%02X%02X%02X", mac[3], mac[4], mac[5]);
 
   Serial.begin(115200);
 
@@ -78,10 +85,12 @@ void setup(void) {
     }
     Serial.println("");
     if (!ap_mode) {
+      strncpy(disp_ssid, ssid, 32);
+      disp_ip = WiFi.localIP();
       Serial.print("Connected to ");
-      Serial.println(ssid);
+      Serial.println(disp_ssid);
       Serial.print("IP address: ");
-      Serial.println(WiFi.localIP());
+      Serial.println(disp_ip);//WiFi.localIP());
     }
     else {
       Serial.print("Can't connect to ");
@@ -90,7 +99,15 @@ void setup(void) {
   }
   if (ap_mode) {
     display_apmode();
-    while(true);
+    Serial.print("Configuring access point...");
+    /* You can remove the password parameter if you want the AP to be open. */
+    strncpy(disp_ssid, idstr, 32);
+    WiFi.softAPConfig(ap_ip, ap_ip, ap_mask);
+    WiFi.softAP(idstr, AP_PASSWORD);
+
+    disp_ip = WiFi.softAPIP();
+    Serial.print("AP IP address: ");
+    Serial.println(disp_ip);
   }
 
   if (MDNS.begin(idstr)) {
@@ -138,7 +155,7 @@ void loop(void) {
 
     switch (disp) {
       case 0:
-        display_wifi();
+        display_wifi(disp_ssid, disp_ip);
         break;
       case 1:
         display_temp(0);
