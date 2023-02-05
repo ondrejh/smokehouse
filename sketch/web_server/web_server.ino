@@ -119,10 +119,13 @@ void loop(void) {
   if (btn.release) Serial.println("Released");
 
   static uint32_t tempT = TEMP_READ_PERIOD_MS;
-  if ((now - tempT) >= TEMP_READ_PERIOD_MS) {
-    tempT = now;  
-    for (int s=0; s<2; s++) {
-      temp[s] = read_temperature(s);
+  static int tempCh = 0;
+  if ((now - tempT) >= TEMP_READ_PERIOD_MS) { 
+    temp[tempCh] = read_temperature(tempCh);
+    tempCh ++;
+    if (tempCh >= 2) {
+      tempT = now;
+      tempCh = 0;
     }
   }
 
