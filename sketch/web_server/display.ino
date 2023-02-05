@@ -78,3 +78,28 @@ void display_wifi() {
 
   display.display();
 }
+
+void display_single_line(int siz, char *str) {
+  display.clearDisplay();
+  display.setTextSize(siz);
+  display.setTextColor(SSD1306_WHITE);
+  display.cp437(true);
+
+  int blen = strlen(str);
+  display.setCursor(64 - blen * 3 * siz, 16 - 4 * siz);
+  display.print(str);
+
+  display.display();
+}
+
+void display_connecting() {
+  char buff[32];
+  sprintf(buff, "Connecting");
+  display_single_line(2, buff);
+}
+
+void display_apmode() {
+  char buff[32];
+  sprintf(buff, "AP mode");
+  display_single_line(2, buff);
+}

@@ -57,6 +57,7 @@ void setup(void) {
   Serial.println("");
 
   // Wait for connection
+  display_connecting();
   int cnt = 0;
   while (WiFi.status() != WL_CONNECTED) {
     cnt ++;
@@ -93,7 +94,7 @@ void loop(void) {
 
   btn.poll();
   if (btn.press) Serial.println("Pressed");
-  if (btn.release) Serial.println("Release");
+  if (btn.release) Serial.println("Released");
 
   static uint32_t tempT = TEMP_READ_PERIOD_MS;
   if ((now - tempT) >= TEMP_READ_PERIOD_MS) {
