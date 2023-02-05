@@ -36,6 +36,7 @@ Adafruit_MAX31865 thermo1 = Adafruit_MAX31865(2, 13, 12, 14);
 Adafruit_MAX31865 thermo2 = Adafruit_MAX31865(0, 13, 12, 14);
 
 Button btn = Button(btnPin);
+bool ap_mode = false;
 
 void setup(void) {
   pinMode(led, OUTPUT);
@@ -52,26 +53,47 @@ void setup(void) {
   sprintf(idstr, "esp%02X%02X%02X", mac[3], mac[4], mac[5]);
 
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.println("");
 
-  // Wait for connection
-  display_connecting();
-  int cnt = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    cnt ++;
-    delay(500);
-    Serial.print(".");
+  for (int i=0; i<16; i++) {
+    btn.poll();
+    if (btn.press) {
+      ap_mode = true;
+      break;
+    }
+    delay(2);
   }
 
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  if (!ap_mode) {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    Serial.println("");
 
-  if (MDNS.begin("esp8266")) {
+    // Wait for connection
+    display_connecting();
+    int cnt = 0;
+    while (WiFi.status() != WL_CONNECTED) {
+      cnt ++;
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("");
+    if (!ap_mode) {
+      Serial.print("Connected to ");
+      Serial.println(ssid);
+      Serial.print("IP address: ");
+      Serial.println(WiFi.localIP());
+    }
+    else {
+      Serial.print("Can't connect to ");
+      Serial.println(ssid);
+    }
+  }
+  if (ap_mode) {
+    display_apmode();
+    while(true);
+  }
+
+  if (MDNS.begin(idstr)) {
     Serial.println("MDNS responder started");
   }
 
