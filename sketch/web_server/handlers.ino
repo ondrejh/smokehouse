@@ -28,6 +28,47 @@ void handleRoot() {
   digitalWrite(led, 0);
 }
 
+void handleSet() {
+  digitalWrite(led, HIGH);
+
+  char msg[16];
+  bool res = false;
+
+  // set WiFi
+  if (server.hasArg("ssid") && server.hasArg("pwd")) {
+    server.arg("ssid").toCharArray(conf.ssid, SSID_STR_MAX);
+    conf.ssid[SSID_STR_MAX] = '\0';
+    server.arg("pwd").toCharArray(conf.pwd, PWD_STR_MAX);
+    conf.pwd[PWD_STR_MAX] = '\0';
+    // save to eeprom
+    eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
+    // OK
+    res = true;
+    //
+    Serial.println("Setting WiFi:");
+    Serial.print("  "); Serial.println(conf.ssid);
+    Serial.print("  "); Serial.println(conf.pwd);
+  }
+
+  // set server
+  if (server.hasArg("url") && server.hasArg("key")) {
+    server.arg("url").toCharArray(conf.url, URL_STR_MAX);
+    conf.url[URL_STR_MAX] = '\0';
+    server.arg("key").toCharArray(conf.key, PWD_STR_MAX);
+    conf.key[URL_STR_MAX] = '\0';
+    eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
+    res = true;
+    Serial.println("Setting server connection:");
+    Serial.print("  "); Serial.println(conf.url);
+    Serial.print("  "); Serial.println(conf.key);
+  }
+
+  sprintf(msg, res ? "OK" : "ERROR");
+  server.send(200, "text/html", msg);
+  
+  digitalWrite(led, LOW);
+}
+
 void handleData() {
   String msg = "{\"key\":\"";
   msg += key;

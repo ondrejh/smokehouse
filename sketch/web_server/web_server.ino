@@ -3,6 +3,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
+#include <EEPROM.h>
+
 #include <Adafruit_MAX31865.h>
 
 #include "secret_password.h"
@@ -21,8 +23,11 @@
 IPAddress ap_ip(192,168,42,1);
 IPAddress ap_mask(255,255,255,0);
 
-const char *ssid = STASSID;
-const char *password = STAPSK;
+#define SSID_STR_MAX 32
+#define PWD_STR_MAX 16
+
+char ssid[SSID_STR_MAX + 1];// = STASSID;
+char password[PWD_STR_MAX];// = STAPSK;
 
 char disp_ssid[32];
 IPAddress disp_ip;
@@ -37,6 +42,21 @@ int temp[2];
 String key = SECRET_KEY;
 char idstr[16] = "";
 
+#define EEPROM_SIZE 1024
+
+// configuration data
+#define EEPROM_CONF_ADDR 0
+#define URL_STR_MAX 128
+typedef struct {
+  char ssid[SSID_STR_MAX + 1];
+  char pwd[PWD_STR_MAX + 1];
+  char url[URL_STR_MAX + 1];
+  char key[PWD_STR_MAX + 1];
+} config_t;
+
+config_t conf;
+
+
 // Use software SPI: CS, DI, DO, CLK
 //Adafruit_MAX31865 thermo = Adafruit_MAX31865(D8, D7, D6, D5); // 10k pulldown on D8
 Adafruit_MAX31865 thermo1 = Adafruit_MAX31865(2, 13, 12, 14);
@@ -46,11 +66,33 @@ Button btn = Button(btnPin);
 bool ap_mode = false;
 
 void setup(void) {
+  Serial.begin(115200);
+  delay(300);
+  Serial.println();
+
   pinMode(led, OUTPUT);
   digitalWrite(led, 0);
 
   thermo1.begin(MAX31865_3WIRE);
   thermo2.begin(MAX31865_3WIRE);
+
+  // init eeprom data
+  init_eeprom(EEPROM_SIZE);
+  if (eeload(EEPROM_CONF_ADDR, &conf, sizeof(conf)) < 0) {
+    Serial.println("No valid configuration in EEPROM. Using default.");
+    conf.ssid[0] = 0;
+    conf.pwd[0] = 0;
+    conf.url[0] = 0;
+    conf.key[0] = 0;
+    eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
+    ap_mode = true;
+  }
+  else {
+    if (conf.ssid[0] == 0) {
+      Serial.println("WiFi not configured. Start AP mode.");
+      ap_mode = true;
+    }
+  }
 
   display_init();
 
@@ -72,7 +114,7 @@ void setup(void) {
 
   if (!ap_mode) {
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(conf.ssid, conf.pwd);
     Serial.println("");
 
     // Wait for connection
@@ -80,12 +122,16 @@ void setup(void) {
     int cnt = 0;
     while (WiFi.status() != WL_CONNECTED) {
       cnt ++;
+      if (cnt > 60) {
+        ap_mode = true;
+        break;
+      }
       delay(500);
       Serial.print(".");
     }
     Serial.println("");
     if (!ap_mode) {
-      strncpy(disp_ssid, ssid, 32);
+      strncpy(disp_ssid, conf.ssid, 32);
       disp_ip = WiFi.localIP();
       Serial.print("Connected to ");
       Serial.println(disp_ssid);
@@ -94,12 +140,12 @@ void setup(void) {
     }
     else {
       Serial.print("Can't connect to ");
-      Serial.println(ssid);
+      Serial.println(conf.ssid);
     }
   }
   if (ap_mode) {
     display_apmode();
-    Serial.print("Configuring access point...");
+    Serial.println("Configuring access point.");
     /* You can remove the password parameter if you want the AP to be open. */
     strncpy(disp_ssid, idstr, 32);
     WiFi.softAPConfig(ap_ip, ap_ip, ap_mask);
@@ -120,6 +166,7 @@ void setup(void) {
     server.send(200, "text/plain", "this works as well");
   });
   server.on("/data.json", handleData);
+  server.on("/set.php", HTTP_POST, handleSet);
   server.onNotFound(handleNotFound);
   server.begin();
   Serial.println("HTTP server started");
