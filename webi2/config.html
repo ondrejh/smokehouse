@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="cz">
+  <head>
+    <meta charset="utf-8">
+    <title>Settings</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+  </head>
+  <body onload="reload()">
+    <div class="overlay" id="overlay" hidden>
+      <div class="confirm-box">
+        <div onclick="closeConfirmBox()" class="close">&#10006;</div>
+        <h2>Víš jistě co děláš ?!?</h2>
+        <p id="question">...</p>
+        <p id="hint">...</p>
+        <button onclick="isConfirm(true)">Ano</button>
+        <button onclick="isConfirm(false)">Ne</button>
+      </div>
+    </div>
+
+    <h1>Nastavení</h1>
+    <h2>Titulek</h2>
+    <form action="" method="post" class="cSettings">
+	    <div class="cSettings">
+		    <label for="capt">Titulek: </label>
+		    <input type="text" name="capt" id="capt" value="IoT Teploměr">
+	    </div>
+    </form>
+    <button onclick="saveCaption()">Uložit</button>
+    <h2>WiFi<span id="wifi"></span></h2>
+    <div>
+    <form action="" method="post" class="cSettings">
+      <div class="cSettings">
+        <label for="ssid">SSID sítě: </label>
+        <input type="text" name="ssid" id="ssid" required>
+      </div>
+      <div class="cSettings">
+        <label for="pwd">Heslo: </label>
+        <input type="password" name="pwd" id="pwd" required>
+      </div>
+    </form>
+    <button onclick="askNetwork()">Potvrdit</button>
+    </div>
+
+    <h2>Server<span id="server"></span></h2>
+    <div>
+    <form action="" method="post" class="cSettings">
+      <div class="cSettings">
+        <label for="url">URL serveru: </label>
+        <input type="text" name="url" id="url" required>
+      </div>
+      <div class="cSettings">
+        <label for="key">Klíč: </label>
+        <input type="password" name="key" id="key" required>
+      </div>
+    </form>
+    <button onclick="askServer()">Potvrdit</button>
+    </div>
+
+    <button onclick="reload()">Vrátit změny</button>
+    <div>
+      <a href="index.html">Zpět</a>
+    </div>
+
+        <script>
+          var d = {};
+
+          function reload() {
+                      fetch("config.json", {cache: "no-store"})
+                        .then((response) => response.json())
+                        .then((json) => {
+                                    //console.log(json);
+                                    let key = document.getElementById("key");
+                                    let url = document.getElementById("url");
+                                    key.value = "";
+                                    url.value = json["url"];
+                                    if (json["url"] != "") {
+                                                key.placeholder = "********";
+                                              }
+                                    else {
+                                                key.placeholder = "123456";
+                                                url.placeholder = "http://www.mujserver.cz/datain.php";
+                                              }
+                                    let ssid = document.getElementById("ssid");
+                                    let pwd = document.getElementById("pwd");
+                                    pwd.value = "";
+                                    ssid.value = json["ssid"];
+                                    if (json["ssid"] != "") {
+                                                pwd.placeholder = "********";
+                                              }
+                                    else {
+                                                pwd.placeholder = "123456";
+                                                ssid.placeholder = "uNasDoma";
+                                              }
+                                    if (json["wifi"]) 
+                                      document.getElementById("wifi").innerText = " OK";
+                                    if (json["server"])
+                                      document.getElementById("server").innerText = " OK";
+				    document.getElementById("capt").value = json["caption"]
+                                  });
+                    }
+
+          function showConfirmBox() {
+                      document.getElementById("overlay").hidden = false;
+                    }
+          function closeConfirmBox() {
+                      document.getElementById("overlay").hidden = true;
+                    }
+
+          function isConfirm(answer) {
+                      if (answer) {
+				  let body ="";
+				  let first = true;
+			          for (const property in d) {
+				        if (!first) {
+					 	body += "&";
+					}
+					first = false;
+							  body += `${property}=${d[property]}`;
+						  };
+				  console.log(body);
+                                  fetch("set.php", {
+                                              method: 'POST',
+                                              headers: {
+                                                          'Accept': '*/*',
+                                                          'Content-Type': 'application/x-www-form-urlencoded'
+                                                        },
+                                              body: body
+                                            });
+                                  setTimeout(reload, 500);
+                                }
+                      closeConfirmBox();
+                    }
+
+	function saveCaption() {
+				let capt = document.getElementById("capt").value;
+				d = {"capt": capt};
+				isConfirm(true);
+			}
+
+          function askNetwork() {
+                      document.getElementById("question").innerText = "Chceš skutečně měnit nastavení WiFi ?";
+                      document.getElementById("hint").innerHTML =
+                        "Nastavení WiFi umožňuje připojit se k místní síti.</br>" +
+                        "Pokud je toto nastavení chybné, nebo není WiFi síť k dispozici, nemůže zařízení odesílat data na internet.</br>" +
+                        "V takovém přípaďě přejde zařízení do režimu AP (vytvoření vlastní sítě), aby bylo možné nastavení opravit.";
+                      let ssid = document.getElementById("ssid").value;
+                      let pwd = document.getElementById("pwd").value;
+                      d = {"ssid":ssid, "pwd":pwd}
+                      showConfirmBox();
+                    }
+          function askServer() {
+                      document.getElementById("question").innerText = "Chceš skutečně měnit nastavení serveru ?";
+                      document.getElementById("hint").innerHTML =
+                        "Nastavení vzdáleného serveru udává, kam se odesílají data ze zařízení.</br>" +
+                        "Pokud je toto nastavení chybné, nebo nemá zařízení přístup k internetu, " +
+                        "měření stále funguje, ale je přístupné pouze z lokální sítě.</br> " +
+                        "Nastavení se dělá pouze jednou, po registraci zařízení na serveru.";
+                      let url = document.getElementById("url").value;
+                      let key = document.getElementById("key").value;
+                      d = {"url": url, "key": key};
+                      showConfirmBox();
+                    }
+        </script>
+
+  </body>
+</html>

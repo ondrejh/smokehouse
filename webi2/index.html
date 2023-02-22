@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="cz">
+  <head>
+    <meta charset="utf-8">
+    <title>IoT Teploměr</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+  </head>
+  <body onload="load()">
+    <h1 id="capt">IoT Teploměr</h1>
+    <div class="cTemp">
+      Teplota 1: <span id="t1">..</span>
+    </div>
+    <div class="cTemp">
+      Teplota 2: <span id="t2">..</span>
+    </div>
+    <div>
+      <a id="wifi" href="config.html">WiFi</a>
+      <a id="server" href="config.html">Server</a>
+    </div>
+        <script>
+          function load() {
+                      reload();
+                      fetch("config.json", {cache: "no-store"})
+                        .then((response) => response.json())
+                        .then((json) => {
+                                    if (json["server"])
+                                      document.getElementById("server").href = json["url"] + "?id=" + json["idstr"] + "&key=" + json["key"];
+                                  });
+                    }
+
+          function reload() {
+                      fetch("data.json", {cache: "no-store"})
+                        .then((response) => response.json())
+                        .then((json) => {
+                                    //console.log(json);
+                                    document.getElementById("t1").innerHTML = json["data"][0] + "&#8451";
+                                    document.getElementById("t2").innerHTML = json["data"][1] + "&#8451";
+				    document.getElementById("capt").innerHTML = json["caption"];
+				    document.title = json["caption"];
+                                  });
+                      setTimeout(reload, 5000);
+                    }
+        </script>
+  </body>
+</html>
