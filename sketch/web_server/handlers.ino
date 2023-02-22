@@ -1,38 +1,25 @@
+void jsonHeader() {
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Content-type", "application/json");
+}
+
 void handleRoot() {
-  digitalWrite(led, 1);
-  char temp[400];
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
-
-  snprintf(temp, 400,
-
-           "<html>\
-  <head>\
-    <meta http-equiv='refresh' content='5'/>\
-    <title>ESP8266 Demo</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Hello from ESP8266!</h1>\
-    <p>Uptime: %02d:%02d:%02d</p>\
-    <img src=\"/test.svg\" />\
-  </body>\
-</html>",
-
-           hr, min % 60, sec % 60
-          );
-  server.send(200, "text/html", temp);
-  digitalWrite(led, 0);
+  server.send(200, "text/html", index_html);
 }
 
 void handleSet() {
-  digitalWrite(led, HIGH);
-
   char msg[16];
   bool res = false;
+
+  // set caption
+  if (server.hasArg("capt")) {
+    server.arg("capt").toCharArray(conf.capt, CAPT_STR_MAX);
+    conf.capt[CAPT_STR_MAX] = '\0';
+    res = true;
+    Serial.println("Setting caption:");
+    Serial.print("  "); Serial.println(conf.capt);
+  }
 
   // set WiFi
   if (server.hasArg("ssid") && server.hasArg("pwd")) {
@@ -40,11 +27,7 @@ void handleSet() {
     conf.ssid[SSID_STR_MAX] = '\0';
     server.arg("pwd").toCharArray(conf.pwd, PWD_STR_MAX);
     conf.pwd[PWD_STR_MAX] = '\0';
-    // save to eeprom
-    eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
-    // OK
     res = true;
-    //
     Serial.println("Setting WiFi:");
     Serial.print("  "); Serial.println(conf.ssid);
     Serial.print("  "); Serial.println(conf.pwd);
@@ -56,17 +39,18 @@ void handleSet() {
     conf.url[URL_STR_MAX] = '\0';
     server.arg("key").toCharArray(conf.key, PWD_STR_MAX);
     conf.key[URL_STR_MAX] = '\0';
-    eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
     res = true;
     Serial.println("Setting server connection:");
     Serial.print("  "); Serial.println(conf.url);
     Serial.print("  "); Serial.println(conf.key);
   }
 
+  if (res) {
+    eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
+  }
+
   sprintf(msg, res ? "OK" : "ERROR");
   server.send(200, "text/html", msg);
-  
-  digitalWrite(led, LOW);
 }
 
 void handleData() {
@@ -74,6 +58,8 @@ void handleData() {
   msg += key;
   msg += "\",\"idstr\":\"";
   msg += idstr;
+  msg += "\",\"caption\":\"";
+  msg += conf.capt;
   msg += "\",\"data\":[";
   for (int i=0; i<2; i++) {
     int t = temp[i] / 10;
@@ -92,6 +78,21 @@ void handleData() {
   }
   msg += "]}";
 
+  jsonHeader();
+  server.send(200, "application/json", msg);
+}
+
+void handleConf() {
+  int p;
+  char msg[512];
+
+  p = sprintf(msg, "{\"ssid\":\"%s\",", conf.ssid);
+  p += sprintf(&msg[p], "\"url\":\"%s\",", conf.url);
+  p += sprintf(&msg[p], "\"caption\":\"%s\",", conf.capt);
+  p += sprintf(&msg[p], "\"wifi\":%s,", ap_mode ? "false" : "true");
+  p += sprintf(&msg[p], "\"server\":%s}", "false");
+
+  jsonHeader();
   server.send(200, "application/json", msg);
 }
 
@@ -114,21 +115,18 @@ void handleNotFound() {
   digitalWrite(led, 0);
 }
 
-void drawGraph() {
-  String out;
-  out.reserve(2600);
-  char temp[70];
-  out += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"400\" height=\"150\">\n";
-  out += "<rect width=\"400\" height=\"150\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
-  out += "<g stroke=\"black\">\n";
-  int y = rand() % 130;
-  for (int x = 10; x < 390; x += 10) {
-    int y2 = rand() % 130;
-    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 140 - y, x + 10, 140 - y2);
-    out += temp;
-    y = y2;
-  }
-  out += "</g>\n</svg>\n";
+void handleFavicon() {
+  server.send(200, "image/x-icon", favicon_bin, sizeof(favicon_bin));
+}
 
-  server.send(200, "image/svg+xml", out);
+void handleStyle() {
+  server.send(200, "text/css", style_bin, sizeof(style_bin));
+}
+
+void handleScript() {
+  server.send(200, "application/javascript", script_bin, sizeof(script_bin));
+}
+
+void handleConfig() {
+  server.send(200, "text/html", config_html);
 }

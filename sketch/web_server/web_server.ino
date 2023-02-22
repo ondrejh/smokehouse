@@ -9,6 +9,7 @@
 
 #include "secret_password.h"
 #include "button.h"
+#include "webi.h"
 
 #ifndef STASSID
 #define STASSID "ssid"
@@ -47,11 +48,13 @@ char idstr[16] = "";
 // configuration data
 #define EEPROM_CONF_ADDR 0
 #define URL_STR_MAX 128
+#define CAPT_STR_MAX 32
 typedef struct {
   char ssid[SSID_STR_MAX + 1];
   char pwd[PWD_STR_MAX + 1];
   char url[URL_STR_MAX + 1];
   char key[PWD_STR_MAX + 1];
+  char capt[CAPT_STR_MAX + 1];
 } config_t;
 
 config_t conf;
@@ -84,6 +87,7 @@ void setup(void) {
     conf.pwd[0] = 0;
     conf.url[0] = 0;
     conf.key[0] = 0;
+    strcpy(conf.capt, "Teploměr\0");
     eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
     ap_mode = true;
   }
@@ -161,12 +165,14 @@ void setup(void) {
   }
 
   server.on("/", handleRoot);
-  server.on("/test.svg", drawGraph);
-  server.on("/inline", []() {
-    server.send(200, "text/plain", "this works as well");
-  });
+  server.on("/index.html", handleRoot);
+  server.on(config_name, handleConfig);
   server.on("/data.json", handleData);
+  server.on("/config.json", handleConf);
   server.on("/set.php", HTTP_POST, handleSet);
+  server.on(favicon_name, handleFavicon);
+  server.on(style_name, handleStyle);
+  server.on(script_name, handleScript);
   server.onNotFound(handleNotFound);
   server.begin();
   Serial.println("HTTP server started");
