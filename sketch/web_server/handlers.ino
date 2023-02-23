@@ -54,11 +54,7 @@ void handleSet() {
 }
 
 void handleData() {
-  String msg = "{\"key\":\"";
-  msg += key;
-  msg += "\",\"idstr\":\"";
-  msg += idstr;
-  msg += "\",\"caption\":\"";
+  String msg = "{\"caption\":\"";
   msg += conf.capt;
   msg += "\",\"data\":[";
   for (int i=0; i<2; i++) {
@@ -90,7 +86,7 @@ void handleConf() {
   p += sprintf(&msg[p], "\"url\":\"%s\",", conf.url);
   p += sprintf(&msg[p], "\"caption\":\"%s\",", conf.capt);
   p += sprintf(&msg[p], "\"wifi\":%s,", ap_mode ? "false" : "true");
-  p += sprintf(&msg[p], "\"server\":%s}", "false");
+  p += sprintf(&msg[p], "\"server\":%s}", server_status ? "false" : "true");
 
   jsonHeader();
   server.send(200, "application/json", msg);

@@ -3,6 +3,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
+#include <ESP8266HTTPClient.h>
+
 #include <EEPROM.h>
 
 #include <Adafruit_MAX31865.h>
@@ -16,9 +18,10 @@
 #define STAPSK  "password"
 #endif
 
-#define TEMP_READ_PERIOD_MS 10000
+#define TEMP_READ_PERIOD_MS 5000
 #define DISPLAY_CYCLE_PERIOD_MS 5000
 #define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
+#define SERVER_SEND_PERIOD_MS 5000
 
 #define AP_PASSWORD "temPr321"
 IPAddress ap_ip(192,168,42,1);
@@ -40,7 +43,7 @@ const int btnPin = 16;
 
 int temp[2];
 
-String key = SECRET_KEY;
+//String key = SECRET_KEY;
 char idstr[16] = "";
 
 #define EEPROM_SIZE 1024
@@ -67,6 +70,44 @@ Adafruit_MAX31865 thermo2 = Adafruit_MAX31865(0, 13, 12, 14);
 
 Button btn = Button(btnPin);
 bool ap_mode = false;
+bool server_status = false;
+
+WiFiClient wifiClient;
+
+bool push_data_to_server() {
+  if (!ap_mode && (WiFi.status() == WL_CONNECTED) && (conf.url[0] != '\0')) {
+    HTTPClient http;
+    int it1 = temp[0] / 10;
+    int dt1 = (temp[0] >= 0) ? (temp[0] - it1 * 10) : (-temp[0] + it1 * 10);
+    int it2 = temp[1] / 10;
+    int dt2 = (temp[1] >= 0) ? (temp[1] - it2 * 10) : (-temp[1] + it2 * 10);
+    char post[256];
+    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"caption\":\"%s\", \"data\":[\"%d.%d\", \"%d.%d\"]}", conf.key, idstr, conf.capt, it1, dt1, it2, dt2);
+    http.begin(wifiClient, conf.url);
+    http.addHeader("Content-Type", "application/json");
+    int httpCode = http.POST(post);
+    String payload = http.getString();
+    http.end();
+
+    Serial.print("POST ");
+    Serial.print(post);
+    Serial.print(" ");
+    Serial.print(it1);
+    Serial.print(".");
+    Serial.print(dt1);
+    Serial.print(" ");
+    Serial.print(it2);
+    Serial.print(".");
+    Serial.print(dt2);
+    Serial.print(" ");
+    Serial.println(httpCode);
+    Serial.println(payload);
+
+    if (payload == "OK")
+      return true;
+  }
+  return false;
+}
 
 void setup(void) {
   Serial.begin(115200);
@@ -222,5 +263,11 @@ void loop(void) {
     
     disp ++;
     disp %= 3;
+  }
+
+  static uint32_t pushT = 0;
+  if ((now - pushT) >= SERVER_SEND_PERIOD_MS) {
+    pushT = now;
+    server_status = push_data_to_server();
   }
 }
