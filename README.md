@@ -13,25 +13,21 @@ The IOT smokehouse thermometer using standard web server as the interface.
 
 ## Next steps (HW / FW) ##
 
-- [X] update sketch !!!
 - [X] use device registration (unique id, key)
-- [X] connect to webi as t_simple
 - [X] add the second thermocoupler
 - [X] draw schematic
 - [X] design pcb
+- [ ] assemble prototypes
 
 ## Next steps (WEBI) ##
 
-- [X] post some data to server (test)
-- [X] receive and decode (json) data
-- [X] save it to db (sqlite)
-- [X] mysql
-- [X] public server
-- [X] better scheme (users, devices, data)
-- [X] register new device
-- [X] list devices
-- [ ] smoker device scheme
-- [ ] dump t_simple data
+- [ ] consolidate folders
+- [ ] build better local webi
+- [ ] build better server webi
+
+## Next steps (all)
+
+- [ ] update docu
 
 ## Install LAMP ##
 
