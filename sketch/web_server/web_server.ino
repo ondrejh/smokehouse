@@ -72,10 +72,12 @@ Button btn = Button(btnPin);
 bool ap_mode = false;
 bool server_status = false;
 
-WiFiClient wifiClient;
+//WiFiClient wifiClient;
 
 bool push_data_to_server() {
   if (!ap_mode && (WiFi.status() == WL_CONNECTED) && (conf.url[0] != '\0')) {
+    WiFiClientSecure client;
+    client.setInsecure();
     HTTPClient http;
     int it1 = temp[0] / 10;
     int dt1 = (temp[0] >= 0) ? (temp[0] - it1 * 10) : (-temp[0] + it1 * 10);
@@ -83,24 +85,20 @@ bool push_data_to_server() {
     int dt2 = (temp[1] >= 0) ? (temp[1] - it2 * 10) : (-temp[1] + it2 * 10);
     char post[256];
     sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"caption\":\"%s\", \"data\":[\"%d.%d\", \"%d.%d\"]}", conf.key, idstr, conf.capt, it1, dt1, it2, dt2);
-    http.begin(wifiClient, conf.url);
+    http.begin(client/*wifiClient*/, conf.url);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
     String payload = http.getString();
     http.end();
 
     Serial.print("POST ");
+    Serial.print(conf.url);
+    Serial.print(" ");
+    Serial.print("DATA ");
     Serial.print(post);
     Serial.print(" ");
-    Serial.print(it1);
-    Serial.print(".");
-    Serial.print(dt1);
+    Serial.print(httpCode);
     Serial.print(" ");
-    Serial.print(it2);
-    Serial.print(".");
-    Serial.print(dt2);
-    Serial.print(" ");
-    Serial.println(httpCode);
     Serial.println(payload);
 
     if (payload == "OK")
