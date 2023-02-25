@@ -39,13 +39,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     	$tab_name = "dev_". $keystr;
 	$query = "CREATE TABLE IF NOT EXISTS ". $tab_name. "(id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY, temp1 REAL, temp2 REAL, tstmp DATETIME DEFAULT CURRENT_TIMESTAMP);";
 	$conn->query($query);
-	$query = "INSERT INTO ". $tab_name. "(temp1, temp2) VALUES (". $data[0]. ", ". $data[1]. ");";
+	$id = get_update_id($tab_name, 300, $conn);
+	if ($id)
+		$query = "UPDATE ". $tab_name. " SET tstmp = NOW(), temp1 = ". $data[0].", temp2 = ". $data[1]. " WHERE id = ". $id. ";";
+	else
+		$query = "INSERT INTO ". $tab_name. "(temp1, temp2) VALUES (". $data[0]. ", ". $data[1]. ");";
 	$conn->query($query);
 	if ($dev_idstr == null) {
 		$query = "UPDATE devices SET idstr = '". $idstr. "' WHERE id = ". $dev_id. ";";
 		$conn->query($query);
 	}
-	limitTableCount($tab_name, "tstamp", TABLE_LIMIT, $conn);
+	limitTableCount($tab_name, "tstmp", TABLE_LIMIT, $conn);
 	$conn->close();
 	echo "OK";
     }

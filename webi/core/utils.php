@@ -127,4 +127,32 @@ function limitTableCount($tab_name, $order_column, $cnt_limit, $msql=null) {
 		$conn->close();
 }
 
+// get id of the last row if interval between last rows is less then 'interval'
+// othervise return false
+function get_update_id($tab_name, $interval, $msql=null) {
+	mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+	$conn = $msql;
+	if ($msql == null)
+		$conn = new mysqli(SERVER, USER, PASWD, DBNAME);
+	$query = "SELECT id, tstmp FROM ". $tab_name. " ORDER BY tstmp DESC;";
+	$res = $conn->query($query);
+	$rows = $res->fetch_all();
+	$id = false;
+	if ($res->num_rows > 2) {
+		$t0 = new DateTime($rows[0][1]);
+		$t1 = new DateTime($rows[1][1]);
+		$tt0 = $t0->getTimestamp();
+		$tt1 = $t1->getTimestamp();
+		$intv = $tt0 - $tt1;
+		#echo "LAST: ". $tt0. "<br>";
+		#echo "PREV: ". $tt1. "<br>";
+		#echo "INT:  ". $intv. "<br>";
+		if ($intv < 300)
+			$id = $rows[0][0]; 
+	}
+	if ($msql == null)
+		$conn->close();
+	return $id;
+}
+
 ?>
