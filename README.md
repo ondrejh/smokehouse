@@ -17,12 +17,13 @@ The IOT smokehouse thermometer using standard web server as the interface.
 - [X] add the second thermocoupler
 - [X] draw schematic
 - [X] design pcb
+- [ ] oversampling
 - [ ] assemble prototypes
 
 ## Next steps (WEBI) ##
 
 - [X] limit data table length
-- [ ] keep time distances between rows
+- [X] keep time distances between rows
 - [ ] consolidate folders
 - [ ] build better local webi
 - [ ] build better server webi
