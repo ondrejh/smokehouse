@@ -5,7 +5,7 @@ from subprocess import call
 
 
 FILENAME = 'webi.h'
-DESTINATION = '../sketch/web_server/'
+DESTINATION = '../../sketch/web_server/'
 
 
 def get_var_name(fname):
