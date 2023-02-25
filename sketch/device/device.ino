@@ -9,14 +9,8 @@
 
 #include <Adafruit_MAX31865.h>
 
-#include "secret_password.h"
 #include "button.h"
 #include "webi.h"
-
-#ifndef STASSID
-#define STASSID "ssid"
-#define STAPSK  "password"
-#endif
 
 #define TEMP_READ_PERIOD_MS 5000
 #define DISPLAY_CYCLE_PERIOD_MS 5000
@@ -85,7 +79,7 @@ bool push_data_to_server() {
     int dt2 = (temp[1] >= 0) ? (temp[1] - it2 * 10) : (-temp[1] + it2 * 10);
     char post[256];
     sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"caption\":\"%s\", \"data\":[\"%d.%d\", \"%d.%d\"]}", conf.key, idstr, conf.capt, it1, dt1, it2, dt2);
-    http.begin(client/*wifiClient*/, conf.url);
+    http.begin(client, conf.url);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
     String payload = http.getString();
