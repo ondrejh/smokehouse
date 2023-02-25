@@ -21,6 +21,8 @@ The IOT smokehouse thermometer using standard web server as the interface.
 
 ## Next steps (WEBI) ##
 
+- [X] limit data table length
+- [ ] keep time distances between rows
 - [ ] consolidate folders
 - [ ] build better local webi
 - [ ] build better server webi

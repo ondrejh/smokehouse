@@ -117,9 +117,9 @@ function limitTableCount($tab_name, $order_column, $cnt_limit, $msql=null) {
 	if ($res->num_rows > $cnt_limit) {
 		$rows = $res->fetch_all();
 		$clm_max = $rows[$cnt_limit][0];
-		echo "First: ". $rows[0][0]. "<br>";
-		echo "Limit: ". $clm_max. "<br>";
-		echo "Last:  " .$rows[$res->num_rows - 1][0]. "<br>";
+		#echo "First: ". $rows[0][0]. "<br>";
+		#echo "Limit: ". $clm_max. "<br>";
+		#echo "Last:  " .$rows[$res->num_rows - 1][0]. "<br>";
 		$query = "DELETE FROM ". $tab_name. " WHERE ". $order_column. " < '" .$clm_max. "';";
 		$conn->query($query);
 	};
