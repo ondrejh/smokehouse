@@ -5,7 +5,7 @@ from subprocess import call
 
 
 FILENAME = 'webi.h'
-DESTINATION = '../../sketch/web_server/'
+DESTINATION = '../../sketch/device/'
 
 
 def get_var_name(fname):
@@ -61,12 +61,12 @@ with open(FILENAME, 'w') as fout:
     fout.write(import_html('index.html'))
     print('  Embed html file config.html')
     fout.write(import_html('config.html'))
-    print('  Embed binary css file style.css')
-    fout.write(import_bin('style.css'))#, end=None))
+    #print('  Embed binary css file style.css')
+    #fout.write(import_bin('style.css'))#, end=None))
     print('  Embed binary favicon.ico')
     fout.write(import_bin('favicon.ico', end=None))
-    print('  Embed binary script.js')
-    fout.write(import_bin('script.js', end=None))
+    #print('  Embed binary script.js')
+    #fout.write(import_bin('script.js', end=None))
     fout.write('#endif __{}__\n'.format(HEADER))
     print('Done')
 
