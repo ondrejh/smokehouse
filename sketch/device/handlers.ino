@@ -86,7 +86,7 @@ void handleConf() {
   p += sprintf(&msg[p], "\"url\":\"%s\",", conf.url);
   p += sprintf(&msg[p], "\"caption\":\"%s\",", conf.capt);
   p += sprintf(&msg[p], "\"wifi\":%s,", ap_mode ? "false" : "true");
-  p += sprintf(&msg[p], "\"server\":%s}", server_status ? "false" : "true");
+  p += sprintf(&msg[p], "\"server\":%s}", server_status ? "true" : "false");
 
   jsonHeader();
   server.send(200, "application/json", msg);
@@ -115,13 +115,13 @@ void handleFavicon() {
   server.send(200, "image/x-icon", favicon_bin, sizeof(favicon_bin));
 }
 
-void handleStyle() {
+/*void handleStyle() {
   server.send(200, "text/css", style_bin, sizeof(style_bin));
 }
 
 void handleScript() {
   server.send(200, "application/javascript", script_bin, sizeof(script_bin));
-}
+}*/
 
 void handleConfig() {
   server.send(200, "text/html", config_html);

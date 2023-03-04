@@ -12,10 +12,10 @@
 #include "button.h"
 #include "webi.h"
 
-#define TEMP_READ_PERIOD_MS 5000
+#define TEMP_READ_PERIOD_MS 500
 #define DISPLAY_CYCLE_PERIOD_MS 5000
 #define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
-#define SERVER_SEND_PERIOD_MS 5000
+#define SERVER_SEND_PERIOD_MS 3000
 
 #define AP_PASSWORD "temPr321"
 IPAddress ap_ip(192,168,42,1);
@@ -83,7 +83,6 @@ bool push_data_to_server() {
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
     String payload = http.getString();
-    http.end();
 
     Serial.print("POST ");
     Serial.print(conf.url);
@@ -95,8 +94,11 @@ bool push_data_to_server() {
     Serial.print(" ");
     Serial.println(payload);
 
-    if (payload == "OK")
+    http.end();
+    if (httpCode == 200) {
+      Serial.println("True");
       return true;
+    }
   }
   return false;
 }
@@ -204,8 +206,8 @@ void setup(void) {
   server.on("/config.json", handleConf);
   server.on("/set.php", HTTP_POST, handleSet);
   server.on(favicon_name, handleFavicon);
-  server.on(style_name, handleStyle);
-  server.on(script_name, handleScript);
+  //server.on(style_name, handleStyle);
+  //server.on(script_name, handleScript);
   server.onNotFound(handleNotFound);
   server.begin();
   Serial.println("HTTP server started");
