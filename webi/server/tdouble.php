@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="cz">
+  <head>
+    <meta charset="utf-8">
+    <title>IoT Teploměr</title>
+    <style>
+			@import url(https://fonts.googleapis.com/css?family=Open+Sans:700,300);
+			html {
+				margin:    0 auto;
+    		max-width: 200px;//700px;
+			}
+			.shadow {
+				-webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+				filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+			}
+			text {
+				fill: #556B2F;
+				font-family: 'Open Sans', Helvetica, sans-serif;
+				-webkit-font-smoothing: antialiased;
+				text-shadow: 3px 3px 5px rgba(0, 0, 0, .7);
+			}
+		</style>
+  </head>
+  <body onload="load()">
+  	<svg viewBox="0 0 200 200">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:rgb(50,50,255);stop-opacity:1" />
+          <stop offset="100%" style="stop-color:rgb(255,50,50);stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="100" r="93" fill="url(#grad1)" />
+      <polygon points="0,200 0,150 100,100 200,150 200,200" style="fill:white;stroke:white;stroke-width:0" />
+      <circle class="shadow" cx="100" cy="100" r="70" fill="GhostWhite" />
+      <text id="temp2" x="50%" y="33%" font-size="1.5em" dominant-baseline="middle" text-anchor="middle"></text>
+      <text id="temp1" x="50%" y="50%" font-size="2.5em" dominant-baseline="middle" text-anchor="middle"></text>
+      <text id="caption" x="50%" y="66%" font-size="1.2em" dominant-baseline="middle" text-anchor="middle">No key</text>
+      <circle class="shadow" cx="100" cy="100" r="97" fill="rgba(0,0,0,0.03)" />
+      <line id="pointer" class="shadow" x1="100" y1="5" x2="100" y2="40" style="stroke:rgb(128,50,128);stroke-width:2" />
+      Sorry, your browser does not support inline SVG.
+    </svg>
+  </body>
+  <script type="text/javascript" >
+	function load() {
+		var myHeaders = new Headers();
+		myHeaders.append('pragma', 'no-cache');
+		myHeaders.append('cache-control', 'no-cache');
+
+		var myInit = {
+  		method: 'GET',
+  		headers: myHeaders,
+		};
+
+		var myRequest = new Request("core/data.php?key=<?php echo $_GET['key']; ?>");
+
+		fetch(myRequest, myInit)
+   		.then((response) => response.json())
+   		.then((json) => {
+   			//console.log(json);
+				let t1 = parseFloat(json["data"][0]);
+				let t2 = parseFloat(json["data"][1]);
+				let caption = json["caption"];
+   			document.getElementById("temp1").innerHTML = t1.toFixed(1) + '&deg';
+   			document.getElementById("temp2").innerHTML = t2.toFixed(1) + '&deg';
+   			document.getElementById("caption").innerHTML = caption;
+
+				let tmin = 0.0;
+				let tmax = 150.0;
+				let pi32 = Math.PI/3*2;
+				let pi34 = pi32*2;
+				let angle = -pi32 + t1 / (tmax - tmin) * pi34;
+				let sx = Math.sin(angle);
+				let cy = Math.cos(angle);
+				let x1 = 100 + sx * 60;
+				let x2 = 100 + sx * 95;
+				let y1 = 100 - cy * 60;
+				let y2 = 100 - cy * 95;
+				//console.log(angle, x1, y1, x2, y2);
+				document.getElementById("pointer").setAttribute("x1", x1);
+				document.getElementById("pointer").setAttribute("y1", y1);
+				document.getElementById("pointer").setAttribute("x2", x2);
+				document.getElementById("pointer").setAttribute("y2", y2);
+   		});
+   		setTimeout(load, 2500);
+   }
+  </script>
+</html>
