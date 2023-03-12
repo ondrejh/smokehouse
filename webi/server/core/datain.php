@@ -59,14 +59,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				$conn->query($query);
 			}
 			$tab_name = "dev_". $keystr;
-    	$query = "CREATE TABLE IF NOT EXISTS ". $tab_name. "(name VARCHAR(32), whg REAL, brs REAL, vol REAL, tstmp DATETIME DEFAULT CURRENT_TIMESTAMP);";
+    	$query = "CREATE TABLE IF NOT EXISTS ". $tab_name. "(name VARCHAR(32), whg REAL, brs REAL, vol REAL, tmp REAL, tstmp DATETIME DEFAULT CURRENT_TIMESTAMP);";
 			$conn->query($query);
 			$query = "SELECT * FROM ". $tab_name. ";";
 			$res = $conn->query($query);
 			if ($res->num_rows > 0)
-    		$query = "UPDATE ". $tab_name. " SET name=\"". $data[0]. "\", whg=". $data[1]. ", brs=". $data[2]. ", vol=". $data[3]. ", tstmp=CURRENT_TIMESTAMP;";
+    		$query = "UPDATE ". $tab_name. " SET name=\"". $data[0]. "\", whg=". $data[1]. ", brs=". $data[2]. ", vol=". $data[3]. ", tmp=". $data[4]. ", tstmp=CURRENT_TIMESTAMP;";
     	else
-    		$query = "INSERT INTO ". $tab_name. "(name, whg, brs, vol) VALUES (\"". $data[0]. "\", ". $data[1]. ", ". $data[2]. ", ". $data[3]. ");";
+    		$query = "INSERT INTO ". $tab_name. "(name, whg, brs, vol, tmp) VALUES (\"". $data[0]. "\", ". $data[1]. ", ". $data[2]. ", ". $data[3]. ", ". $data[4]. ");";
     	$conn->query($query);
     	$conn->close();
     	echo "OK";

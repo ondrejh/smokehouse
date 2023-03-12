@@ -147,7 +147,7 @@ function get_update_id($tab_name, $interval, $msql=null) {
 		#echo "LAST: ". $tt0. "<br>";
 		#echo "PREV: ". $tt1. "<br>";
 		#echo "INT:  ". $intv. "<br>";
-		if ($intv < 300)
+		if ($intv < $interval)
 			$id = $rows[0][0]; 
 	}
 	if ($msql == null)

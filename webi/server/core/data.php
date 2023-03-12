@@ -20,8 +20,36 @@
 			$data = array("caption" => $device_name, "time" => $last_tstmp, "data" => [$last_temp1, $last_temp2]);
 			header("Content-Type: application/json");
 			echo json_encode($data);
+			$conn->close();
 			exit();
 		}
+		elseif ($device_typeid == 3) {
+			$query = "SELECT name, whg, brs, vol, tmp, tstmp FROM dev_". $devkey. ";";
+			$res = $conn->query($query);
+			$row = $res->fetch_row();
+			$knam = $row[0];
+			$kwhg = $row[1];
+			$kbrs = $row[2];
+			$kvol = $row[3];
+			$ktmp = $row[4];
+			$tstmp = $row[5];
+			$conn->close();
+
+			$tsql = new DateTime($tstmp);
+			$tnow = new DateTime(date("Y-m-d H:i:s"));
+			$tts = $tsql->getTimestamp();
+			$ttn = $tnow->getTimestamp();
+			$intv = $ttn - $tts;
+			if ($intv < 30) {
+				$data = array("units" => $kwhg, "temp" => $ktmp, "primary_unit" => "kg", "secondary_unit" => "piv");
+				if ($kvol > 0)
+					$data["keg"] = array("name" => $knam, "volume" => $kvol, "left" => $kbrs);
+				header("Content-Type: application/json");
+				echo json_encode($data);
+			}
+			exit();
+		}
+		$conn->close();
 		exit();
 	}
 	else {
