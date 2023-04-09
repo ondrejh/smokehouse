@@ -6,11 +6,12 @@
 
 #define AVGLEN 8
 
-int read_temperature(uint8_t s) {
+int read_temperature(uint8_t s, int *it) {
   static float f1[AVGLEN];
   static float f2[AVGLEN];
   static int p1 = 0, p2 = 0;
   static bool first1 = true, first2 = true;
+  bool ignore = false;
   
   if (s > 1) return 0;
   
@@ -19,47 +20,64 @@ int read_temperature(uint8_t s) {
   if (s == 0) {
     rtd = thermo1.readRTD();
     t = thermo1.temperature(RNOMINAL, RREF);
-    if (first1) {
-      for (int i=0; i<AVGLEN; i++)
-        f1[i] = t;
-      first1 = false;
+    if ((t > 900.0) || (t < -200.0)) {
+      // ignore result
+      // adc or sensor is disconnected
+      ignore = true;
+      first1 = true;
     }
     else {
-      f1[p1] = t;
-      p1 += 1;
-      p1 %= AVGLEN;
+      if (first1) {
+        for (int i=0; i<AVGLEN; i++)
+          f1[i] = t;
+        first1 = false;
+      }
+      else {
+        f1[p1] = t;
+        p1 += 1;
+        p1 %= AVGLEN;
+      }
+      t = 0.0;
+      for (int i=0; i<AVGLEN; i++)
+        t += f1[i];
+      t /= AVGLEN;
     }
-    t = 0.0;
-    for (int i=0; i<AVGLEN; i++)
-      t += f1[i];
-    t /= AVGLEN;
   }
   else {
     rtd = thermo2.readRTD();
     t = thermo2.temperature(RNOMINAL, RREF);
-    if (first2) {
-      for (int i=0; i<AVGLEN; i++)
-        f2[i] = t;
-      first2 = false;
+    if ((t > 900.0) || (t < -200.0)) {
+      // ignore result
+      // adc or sensor is disconnected
+      ignore = true;
+      first2 = true;
     }
     else {
-      f2[p2] = t;
-      p2 += 1;
-      p2 %= AVGLEN;
+      if (first2) {
+        for (int i=0; i<AVGLEN; i++)
+          f2[i] = t;
+        first2 = false;
+      }
+      else {
+        f2[p2] = t;
+        p2 += 1;
+        p2 %= AVGLEN;
+      }
+      t = 0.0;
+      for (int i=0; i<AVGLEN; i++)
+        t += f2[i];
+      t /= AVGLEN;
     }
-    t = 0.0;
-    for (int i=0; i<AVGLEN; i++)
-      t += f2[i];
-    t /= AVGLEN;
   }
 
-  int it = round(t * 10);
+  *it = round(t * 10);
 
   Serial.print("Temperature ");
   Serial.print(s + 1);
   Serial.print(" ");
   Serial.print(t);
-  Serial.println(" C");
+  Serial.print(" C ");
+  Serial.println(ignore ? "ERROR" : "OK");
 
-  return it;
+  return (ignore ? -1 : 0);
 }

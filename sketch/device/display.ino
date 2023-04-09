@@ -32,19 +32,24 @@ void display_temp(uint8_t s) {
   display.setCursor(0, 0);
   display.print(s + 1);
   display.setTextSize(3);      // Normal 1:1 pixel scale
-  
+
   char buff[64];
   int blen;
-  int t = temp[s] / 10;
-  int dt;
-  if (temp[s] >= 0)
-    dt = temp[s] - t * 10;
-  else
-    dt = -temp[s] + t * 10;
-  if ((t >= 100) || (t <= -10))
-    sprintf(buff, "%d C", t);
-  else
-    sprintf(buff, "%d.%01d C", t, dt);
+  if (valid[s]) {
+    int t = temp[s] / 10;
+    int dt;
+    if (temp[s] >= 0)
+      dt = temp[s] - t * 10;
+    else
+      dt = -temp[s] + t * 10;
+    if ((t >= 100) || (t <= -10))
+      sprintf(buff, "%d C", t);
+    else
+      sprintf(buff, "%d.%01d C", t, dt);
+  }
+  else {
+    sprintf(buff, "--- C");
+  }
   blen = strlen(buff);
   int xs = 70 - blen*9;
   display.setCursor(xs, 10);     // Start at top-left corner
