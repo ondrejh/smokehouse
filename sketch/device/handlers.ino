@@ -58,19 +58,24 @@ void handleData() {
   msg += conf.capt;
   msg += "\",\"data\":[";
   for (int i=0; i<2; i++) {
-    int t = temp[i] / 10;
-    int dt;
-    if (temp[i] >= 0)
-      dt = temp[i] - t * 10;
-    else
-      dt = -temp[i] + t * 10;
     if (i > 0)
       msg += ",";
-    msg += "\"";
-    msg += t;
-    msg += ".";
-    msg += dt;
-    msg += "\"";
+    if (valid[i]) {
+      int t = temp[i] / 10;
+      int dt;
+      if (temp[i] >= 0)
+        dt = temp[i] - t * 10;
+      else
+        dt = -temp[i] + t * 10;
+      msg += "\"";
+      msg += t;
+      msg += ".";
+      msg += dt;
+      msg += "\"";
+    }
+    else {
+      msg += "\"null\"";      
+    }
   }
   msg += "]}";
 

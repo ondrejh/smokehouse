@@ -36,6 +36,7 @@ const int led = 13;
 const int btnPin = 16;
 
 int temp[2];
+bool valid[2];
 
 //String key = SECRET_KEY;
 char idstr[16] = "";
@@ -73,12 +74,25 @@ bool push_data_to_server() {
     WiFiClientSecure client;
     client.setInsecure();
     HTTPClient http;
-    int it1 = temp[0] / 10;
-    int dt1 = (temp[0] >= 0) ? (temp[0] - it1 * 10) : (-temp[0] + it1 * 10);
-    int it2 = temp[1] / 10;
-    int dt2 = (temp[1] >= 0) ? (temp[1] - it2 * 10) : (-temp[1] + it2 * 10);
+    char st1[16], st2[16];
+    if (valid[0]) {
+      int it1 = temp[0] / 10;
+      int dt1 = (temp[0] >= 0) ? (temp[0] - it1 * 10) : (-temp[0] + it1 * 10);
+      sprintf(st1, "%d.%d", it1, dt1);
+    }
+    else {
+      sprintf(st1, "null");
+    }
+    if (valid[1]) {
+      int it2 = temp[1] / 10;
+      int dt2 = (temp[1] >= 0) ? (temp[1] - it2 * 10) : (-temp[1] + it2 * 10);
+      sprintf(st2, "%d.%d", it2, dt2);
+    }
+    else {
+      sprintf(st2, "null");
+    }
     char post[256];
-    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"caption\":\"%s\", \"data\":[\"%d.%d\", \"%d.%d\"]}", conf.key, idstr, conf.capt, it1, dt1, it2, dt2);
+    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"caption\":\"%s\", \"data\":[\"%s\", \"%s\"]}", conf.key, idstr, conf.capt, st1, st2);
     http.begin(client, conf.url);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
@@ -225,8 +239,15 @@ void loop(void) {
 
   static uint32_t tempT = TEMP_READ_PERIOD_MS;
   static int tempCh = 0;
-  if ((now - tempT) >= TEMP_READ_PERIOD_MS) { 
-    temp[tempCh] = read_temperature(tempCh);
+  if ((now - tempT) >= TEMP_READ_PERIOD_MS) {
+    int t;
+    if (read_temperature(tempCh, &t) == 0) {
+      temp[tempCh] = t;
+      valid[tempCh] = true;
+    }
+    else {
+      valid[tempCh] = false;
+    }
     tempCh ++;
     if (tempCh >= 2) {
       tempT = now;
