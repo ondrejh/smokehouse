@@ -72,12 +72,12 @@ int read_temperature(uint8_t s, int *it) {
 
   *it = round(t * 10);
 
-  Serial.print("Temperature ");
+  /*Serial.print("Temperature ");
   Serial.print(s + 1);
   Serial.print(" ");
   Serial.print(t);
   Serial.print(" C ");
-  Serial.println(ignore ? "ERROR" : "OK");
+  Serial.println(ignore ? "ERROR" : "OK");*/
 
   return (ignore ? -1 : 0);
 }

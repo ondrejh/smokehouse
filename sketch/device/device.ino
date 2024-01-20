@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+//#include <ESP8266mDNS.h>
 
 #include <ESP8266HTTPClient.h>
 
@@ -12,10 +12,10 @@
 #include "button.h"
 #include "webi.h"
 
-#define TEMP_READ_PERIOD_MS 500
-#define DISPLAY_CYCLE_PERIOD_MS 5000
+#define TEMP_READ_PERIOD_MS 5000
+#define DISPLAY_CYCLE_PERIOD_MS 10000
 #define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
-#define SERVER_SEND_PERIOD_MS 3000
+#define SERVER_SEND_PERIOD_MS 10000
 
 #define AP_PASSWORD "temPr321"
 IPAddress ap_ip(192,168,42,1);
@@ -68,11 +68,16 @@ bool ap_mode = false;
 bool server_status = false;
 
 //WiFiClient wifiClient;
+WiFiClientSecure client;
 
 bool push_data_to_server() {
   if (!ap_mode && (WiFi.status() == WL_CONNECTED) && (conf.url[0] != '\0')) {
-    WiFiClientSecure client;
-    client.setInsecure();
+    Serial.print("POST ");
+    Serial.println(conf.url);
+    uint32_t tElap = micros();
+    
+    //WiFiClientSecure client;
+    //client.setInsecure();
     HTTPClient http;
     char st1[16], st2[16];
     if (valid[0]) {
@@ -98,19 +103,19 @@ bool push_data_to_server() {
     int httpCode = http.POST(post);
     String payload = http.getString();
 
-    Serial.print("POST ");
-    Serial.print(conf.url);
-    Serial.print(" ");
+    http.end();
+
+    tElap = micros() - tElap;
+    Serial.print("TIME ");
+    Serial.println(tElap);
     Serial.print("DATA ");
-    Serial.print(post);
-    Serial.print(" ");
+    Serial.println(post);
     Serial.print(httpCode);
     Serial.print(" ");
     Serial.println(payload);
 
-    http.end();
     if (httpCode == 200) {
-      Serial.println("True");
+      //Serial.println("True");
       return true;
     }
   }
@@ -209,9 +214,9 @@ void setup(void) {
     Serial.println(disp_ip);
   }
 
-  if (MDNS.begin(idstr)) {
+  /*if (MDNS.begin(idstr)) {
     Serial.println("MDNS responder started");
-  }
+  }*/
 
   server.on("/", handleRoot);
   server.on("/index.html", handleRoot);
@@ -225,13 +230,15 @@ void setup(void) {
   server.onNotFound(handleNotFound);
   server.begin();
   Serial.println("HTTP server started");
+
+  client.setInsecure();
 }
 
 void loop(void) {
   uint32_t now = millis();
   
   server.handleClient();
-  MDNS.update();
+  //MDNS.update();
 
   btn.poll();
   if (btn.press) Serial.println("Pressed");
