@@ -54,6 +54,7 @@ void handleSet() {
 }
 
 void handleData() {
+  //uint32_t tElap = micros();
   String msg = "{\"caption\":\"";
   msg += conf.capt;
   msg += "\",\"data\":[";
@@ -78,6 +79,9 @@ void handleData() {
     }
   }
   msg += "]}";
+  /*tElap = micros() - tElap;
+  Serial.print("Data ");
+  Serial.println(tElap);*/
 
   jsonHeader();
   server.send(200, "application/json", msg);

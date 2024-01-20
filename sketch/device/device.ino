@@ -37,6 +37,7 @@ const int btnPin = 16;
 
 int temp[2];
 bool valid[2];
+uint32_t uptim = 0;
 
 //String key = SECRET_KEY;
 char idstr[16] = "";
@@ -79,7 +80,7 @@ bool push_data_to_server() {
     //WiFiClientSecure client;
     //client.setInsecure();
     HTTPClient http;
-    char st1[16], st2[16];
+    char st1[16], st2[16], sup[16];
     if (valid[0]) {
       int it1 = temp[0] / 10;
       int dt1 = (temp[0] >= 0) ? (temp[0] - it1 * 10) : (-temp[0] + it1 * 10);
@@ -96,8 +97,9 @@ bool push_data_to_server() {
     else {
       sprintf(st2, "null");
     }
+    sprintf(sup, "%d", uptim);
     char post[256];
-    sprintf(post, "{\"key\":\"%s\", \"idstr\":\"%s\", \"caption\":\"%s\", \"data\":[\"%s\", \"%s\"]}", conf.key, idstr, conf.capt, st1, st2);
+    sprintf(post, "{\"id\":\"%s\", \"key\":\"%s\", \"data\":{\"temp1\": \"%s\", \"temp2\": \"%s\", \"uptim\": \"%s\"}}", idstr, conf.key, st1, st2, sup);
     http.begin(client, conf.url);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(post);
@@ -236,6 +238,12 @@ void setup(void) {
 
 void loop(void) {
   uint32_t now = millis();
+
+  static uint32_t uptim_ms;
+  while ((now - uptim_ms) > 1000) {
+    uptim_ms += 1000;
+    uptim ++;
+  }
   
   server.handleClient();
   //MDNS.update();
