@@ -15,7 +15,7 @@
 #define TEMP_READ_PERIOD_MS 5000
 #define DISPLAY_CYCLE_PERIOD_MS 10000
 #define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
-#define SERVER_SEND_PERIOD_MS 10000
+#define SERVER_SEND_PERIOD_MS 15000
 
 #define AP_PASSWORD "temPr321"
 IPAddress ap_ip(192,168,42,1);
@@ -297,7 +297,7 @@ void loop(void) {
 
   static uint32_t pushT = 0;
   if ((now - pushT) >= SERVER_SEND_PERIOD_MS) {
-    pushT = now;
     server_status = push_data_to_server();
+    pushT = millis();
   }
 }
