@@ -2,3 +2,4 @@ distr
 secret_consts.php
 core/dbauth.php
 commands_secret.ftp
+toServer.bat
