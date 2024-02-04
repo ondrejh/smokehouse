@@ -88,7 +88,7 @@ else {
     <?php echo DB_DATABASE_NAME; ?>
   </p>
   <table>
-  <tr><th>ID</th><th>Jméno</th><th>Klíč</th><th>Čas</th></tr>
+  <tr><th>ID</th><th>Jméno</th><th>Klíč</th><th>Online</th></tr>
 <?php
 $conn = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE_NAME);
 if ($conn) {
@@ -97,9 +97,11 @@ if ($conn) {
 	if ($stmt !== false) {
 		$stmt->execute();
 		$res = $stmt->get_result();
-		$row = $res->fetch_assoc();
-		if ($row) {
-			echo "<tr><td>". $row['id']. "</td><td>". $row['name']. "</td><td>". $row['key']. "</td><td>". $row['tstamp']. "</td></tr>". PHP_EOL;
+		//$row = $res->fetch_assoc();
+		while ($row = $res->fetch_assoc()) {
+			$key = (substr($row['key'], 0, 1) != "$") ? $row['key'] : '...';
+			$online = (strtotime($row['tstamp']) > strtotime("-2 minutes")) ? "Online" : "Offline";
+			echo "<tr><td>". $row['id']. "</td><td>". $row['name']. "</td><td>". $key. "</td><td>". $online. "</td></tr>". PHP_EOL;
 		}
 	}
 }
