@@ -73,6 +73,7 @@ WiFiClientSecure client;
 
 bool push_data_to_server() {
   if (!ap_mode && (WiFi.status() == WL_CONNECTED) && (conf.url[0] != '\0')) {
+    Serial.println(millis());
     Serial.print("POST ");
     Serial.println(conf.url);
     uint32_t tElap = micros();
@@ -238,6 +239,7 @@ void setup(void) {
 
 void loop(void) {
   uint32_t now = millis();
+  static bool refresh = false;
 
   static uint32_t uptim_ms;
   while ((now - uptim_ms) > 1000) {
@@ -273,11 +275,13 @@ void loop(void) {
   static uint32_t dispT = 0;
   static int disp = 0;
   static uint32_t period = DISPLAY_CYCLE_PERIOD_MS;
-  if ( ((now - dispT) >= period) || btn.press ) {
-    dispT = now;
-    period = btn.press ? BUTTON_PRESS_CYCLE_PAUSE_MS : DISPLAY_CYCLE_PERIOD_MS;
+  if ( ((now - dispT) >= period) || btn.press || refresh) {
+    if (!refresh) {
+      dispT = now;
+      period = btn.press ? BUTTON_PRESS_CYCLE_PAUSE_MS : DISPLAY_CYCLE_PERIOD_MS;
+    }
 
-    switch (disp) {
+    switch (disp || refresh) {
       case 0:
         display_wifi(disp_ssid, disp_ip);
         break;
@@ -291,13 +295,18 @@ void loop(void) {
         break;
     }
     
-    disp ++;
-    disp %= 3;
+    if (!refresh) {
+      disp ++;
+      disp %= 3;
+    }
+    refresh = false;
   }
 
   static uint32_t pushT = 0;
   if ((now - pushT) >= SERVER_SEND_PERIOD_MS) {
+    display_transfer();
     server_status = push_data_to_server();
     pushT = millis();
+    refresh = true;
   }
 }

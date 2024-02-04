@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "transfer.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -107,4 +108,20 @@ void display_apmode() {
   char buff[32];
   sprintf(buff, "AP mode");
   display_single_line(2, buff);
+}
+
+void display_transfer() {
+	int x, y;
+	for (x=0; x<16; x++) {
+		for (y=0; y<24; y++) {
+			int B = (y / 8) + 3 * x;
+			int b = 7 - (y % 8);
+			if (B >= 24) {
+				B = 47 - B;
+				b = 7 - b;
+			}
+      display.drawPixel(127 - y, x, ((transf_icon[B] & (1<<b)) != 0) ? 1 : 0);
+		}
+	}
+  display.display();
 }
