@@ -276,12 +276,10 @@ void loop(void) {
   static int disp = 0;
   static uint32_t period = DISPLAY_CYCLE_PERIOD_MS;
   if ( ((now - dispT) >= period) || btn.press || refresh) {
-    if (!refresh) {
-      dispT = now;
-      period = btn.press ? BUTTON_PRESS_CYCLE_PAUSE_MS : DISPLAY_CYCLE_PERIOD_MS;
-    }
+    dispT = now;
+    period = btn.press ? BUTTON_PRESS_CYCLE_PAUSE_MS : DISPLAY_CYCLE_PERIOD_MS;
 
-    switch (disp || refresh) {
+    switch (disp) {
       case 0:
         display_wifi(disp_ssid, disp_ip);
         break;
