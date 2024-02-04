@@ -1,3 +1,5 @@
+// display transfer icon from transfer.h file (test)
+
 #include <stdio.h>
 #include <stdint.h>
 #include "transfer.h"
