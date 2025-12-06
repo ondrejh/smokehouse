@@ -6,6 +6,25 @@
 
 #define AVGLEN 8
 
+String temp2string(int temp, bool valid) {
+  String msg = "";
+  if (valid) {
+    int t = temp / 10;
+    int dt;
+    if (temp >= 0)
+      dt = temp - t * 10;
+    else
+      dt = -temp + t * 10;
+    msg += t;
+    msg += ".";
+    msg += dt;
+  }
+  else {
+    msg += "\"null\"";
+  }
+  return msg;
+}
+
 int read_temperature(uint8_t s, int *it) {
   static float f1[AVGLEN];
   static float f2[AVGLEN];

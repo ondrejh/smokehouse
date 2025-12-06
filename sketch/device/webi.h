@@ -105,8 +105,8 @@ const char *config_html PROGMEM = "\
   <head>\n\
     <meta charset=\"utf-8\">\n\
     <title>Settings</title>\n\
-    <link rel=\"stylesheet\" href=\"style.css\">\n\
-    <script src=\"script.js\"></script>\n\
+    <!--<link rel=\"stylesheet\" href=\"style.css\">\n\
+    <script src=\"script.js\"></script>-->\n\
   </head>\n\
   <body onload=\"reload()\">\n\
     <div class=\"overlay\" id=\"overlay\" hidden>\n\
@@ -121,6 +121,7 @@ const char *config_html PROGMEM = "\
     </div>\n\
 \n\
     <h1>Nastavení</h1>\n\
+\n\
     <h2>Titulek</h2>\n\
     <form action=\"\" method=\"post\" class=\"cSettings\">\n\
 	    <div class=\"cSettings\">\n\
@@ -129,8 +130,8 @@ const char *config_html PROGMEM = "\
 	    </div>\n\
     </form>\n\
     <button onclick=\"saveCaption()\">Uložit</button>\n\
+\n\
     <h2>WiFi<span id=\"wifi\"></span></h2>\n\
-    <div>\n\
     <form action=\"\" method=\"post\" class=\"cSettings\">\n\
       <div class=\"cSettings\">\n\
         <label for=\"ssid\">SSID sítě: </label>\n\
@@ -142,10 +143,29 @@ const char *config_html PROGMEM = "\
       </div>\n\
     </form>\n\
     <button onclick=\"askNetwork()\">Potvrdit</button>\n\
-    </div>\n\
+\n\
+    <h2>MQTT<span id=\"mqtt\"></span></h2>\n\
+    <form action=\"\" method=\"post\" class=\"cSettings\">\n\
+      <div class=\"cSettings\">\n\
+        <label for=\"mqtt_ip\">IP adresa MQTT serveru: </label>\n\
+        <input type=\"text\" name=\"mqtt_ip\" id=\"mqtt_ip\" required>\n\
+      </div>\n\
+      <div class=\"cSettings\">\n\
+        <label for=\"mqtt_topic\">Topic: </label>\n\
+        <input type=\"text\" name=\"mqtt_topic\" id=\"mqtt_topic\" required>\n\
+      </div>\n\
+      <div class=\"cSettings\">\n\
+        <label for=\"mqtt_usr\">Uživatel: </label>\n\
+        <input type=\"text\" name=\"mqtt_usr\" id=\"mqtt_usr\" required>\n\
+      </div>\n\
+      <div class=\"cSettings\">\n\
+        <label for=\"mqtt_pwd\">Heslo: </label>\n\
+        <input type=\"password\" name=\"mqtt_pwd\" id=\"mqtt_pwd\" required>\n\
+      </div>\n\
+    </form>\n\
+    <button onclick=\"askMqtt()\">Potvrdit</button>\n\
 \n\
     <h2>Server<span id=\"server\"></span></h2>\n\
-    <div>\n\
     <form action=\"\" method=\"post\" class=\"cSettings\">\n\
       <div class=\"cSettings\">\n\
         <label for=\"url\">URL serveru: </label>\n\
@@ -157,114 +177,161 @@ const char *config_html PROGMEM = "\
       </div>\n\
     </form>\n\
     <button onclick=\"askServer()\">Potvrdit</button>\n\
-    </div>\n\
 \n\
     <button onclick=\"reload()\">Vrátit změny</button>\n\
     <div>\n\
       <a href=\"index.html\">Zpět</a>\n\
     </div>\n\
 \n\
-        <script>\n\
-          var d = {};\n\
+    <script>\n\
+      var d = {};\n\
 \n\
-          function reload() {\n\
-                      fetch(\"config.json\", {cache: \"no-store\"})\n\
-                        .then((response) => response.json())\n\
-                        .then((json) => {\n\
-                                    //console.log(json);\n\
-                                    let key = document.getElementById(\"key\");\n\
-                                    let url = document.getElementById(\"url\");\n\
-                                    key.value = \"\";\n\
-                                    url.value = json[\"url\"];\n\
-                                    if (json[\"url\"] != \"\") {\n\
-                                                key.placeholder = \"********\";\n\
-                                              }\n\
-                                    else {\n\
-                                                key.placeholder = \"123456\";\n\
-                                                url.placeholder = \"http://www.mujserver.cz/datain.php\";\n\
-                                              }\n\
-                                    let ssid = document.getElementById(\"ssid\");\n\
-                                    let pwd = document.getElementById(\"pwd\");\n\
-                                    pwd.value = \"\";\n\
-                                    ssid.value = json[\"ssid\"];\n\
-                                    if (json[\"ssid\"] != \"\") {\n\
-                                                pwd.placeholder = \"********\";\n\
-                                              }\n\
-                                    else {\n\
-                                                pwd.placeholder = \"123456\";\n\
-                                                ssid.placeholder = \"uNasDoma\";\n\
-                                              }\n\
-                                    if (json[\"wifi\"])\n\
-                                      document.getElementById(\"wifi\").innerText = \" OK\";\n\
-                                    if (json[\"server\"])\n\
-                                      document.getElementById(\"server\").innerText = \" OK\";\n\
-				    document.getElementById(\"capt\").value = json[\"caption\"]\n\
-                                  });\n\
+      function reload() {\n\
+        fetch(\"config.json\", {cache: \"no-store\"})\n\
+        .then((response) => response.json())\n\
+        .then((json) => {\n\
+          //console.log(json);\n\
+          let key = document.getElementById(\"key\");\n\
+          let url = document.getElementById(\"url\");\n\
+          key.value = \"\";\n\
+          url.value = json[\"url\"];\n\
+          if (json[\"url\"] != \"\") {\n\
+                      key.placeholder = \"********\";\n\
                     }\n\
+          else {\n\
+                      key.placeholder = \"123456\";\n\
+                      url.placeholder = \"http://www.mujserver.cz/datain.php\";\n\
+                    }\n\
+          let ssid = document.getElementById(\"ssid\");\n\
+          let pwd = document.getElementById(\"pwd\");\n\
+          pwd.value = \"\";\n\
+          ssid.value = json[\"ssid\"];\n\
+          if (json[\"ssid\"] != \"\") {\n\
+            pwd.placeholder = \"********\";\n\
+          }\n\
+          else {\n\
+            pwd.placeholder = \"123456\";\n\
+            ssid.placeholder = \"uNasDoma\";\n\
+          }\n\
 \n\
-          function showConfirmBox() {\n\
-                      document.getElementById(\"overlay\").hidden = false;\n\
-                    }\n\
-          function closeConfirmBox() {\n\
-                      document.getElementById(\"overlay\").hidden = true;\n\
-                    }\n\
+          if (json[\"wifi\"])\n\
+            document.getElementById(\"wifi\").innerText = \" OK\";\n\
+          if (json[\"server\"])\n\
+            document.getElementById(\"server\").innerText = \" OK\";\n\
+          if (json[\"mqtt\"])\n\
+            document.getElementById(\"mqtt\").innerText = \" OK\";\n\
 \n\
-          function isConfirm(answer) {\n\
-                      if (answer) {\n\
-				  let body =\"\";\n\
-				  let first = true;\n\
-			          for (const property in d) {\n\
-				        if (!first) {\n\
-					 	body += \"&\";\n\
-					}\n\
-					first = false;\n\
-							  body += `${property}=${d[property]}`;\n\
-						  };\n\
-				  console.log(body);\n\
-                                  fetch(\"set.php\", {\n\
-                                              method: 'POST',\n\
-                                              headers: {\n\
-                                                          'Accept': '*/*',\n\
-                                                          'Content-Type': 'application/x-www-form-urlencoded'\n\
-                                                        },\n\
-                                              body: body\n\
-                                            });\n\
-                                  setTimeout(reload, 500);\n\
-                                }\n\
-                      closeConfirmBox();\n\
-                    }\n\
+          let mqtt_ip = document.getElementById(\"mqtt_ip\");\n\
+          let mqtt_topic = document.getElementById(\"mqtt_topic\");\n\
+          let mqtt_usr = document.getElementById(\"mqtt_usr\");\n\
+          let mqtt_pwd = document.getElementById(\"mqtt_pwd\");\n\
+          if (\"mqtt_ip\" in json) {\n\
+            mqtt_ip.value = json[\"mqtt_ip\"];\n\
+          }\n\
+          else {\n\
+            mqtt_ip.placeholder = \"192.168.42.123\"\n\
+          }\n\
+          if (\"mqtt_topic\" in json) {\n\
+            mqtt_topic.value = json[\"mqtt_topic\"];\n\
+          }\n\
+          else {\n\
+            mqtt_topic.placeholder = \"/home/my_temp\";\n\
+          }\n\
 \n\
-	function saveCaption() {\n\
-				let capt = document.getElementById(\"capt\").value;\n\
-				d = {\"capt\": capt};\n\
-				isConfirm(true);\n\
-			}\n\
+          mqtt_pwd.value = \"\";\n\
+          if (\"mqtt_usr\" in json) {\n\
+            mqtt_usr.value = json[\"mqtt_usr\"];\n\
+            mqtt_pwd.placeholder = \"********\";\n\
+          }\n\
+          else {\n\
+            mqtt_pwd.placeholder = \"mqttPassword\";\n\
+            mqtt_usr.placeholder = \"mqttUser\";\n\
+          }\n\
 \n\
-          function askNetwork() {\n\
-                      document.getElementById(\"question\").innerText = \"Chceš skutečně měnit nastavení WiFi ?\";\n\
-                      document.getElementById(\"hint\").innerHTML =\n\
-                        \"Nastavení WiFi umožňuje připojit se k místní síti.</br>\" +\n\
-                        \"Pokud je toto nastavení chybné, nebo není WiFi síť k dispozici, nemůže zařízení odesílat data na internet.</br>\" +\n\
-                        \"V takovém přípaďě přejde zařízení do režimu AP (vytvoření vlastní sítě), aby bylo možné nastavení opravit.\";\n\
-                      let ssid = document.getElementById(\"ssid\").value;\n\
-                      let pwd = document.getElementById(\"pwd\").value;\n\
-                      d = {\"ssid\":ssid, \"pwd\":pwd}\n\
-                      showConfirmBox();\n\
-                    }\n\
-          function askServer() {\n\
-                      document.getElementById(\"question\").innerText = \"Chceš skutečně měnit nastavení serveru ?\";\n\
-                      document.getElementById(\"hint\").innerHTML =\n\
-                        \"Nastavení vzdáleného serveru udává, kam se odesílají data ze zařízení.</br>\" +\n\
-                        \"Pokud je toto nastavení chybné, nebo nemá zařízení přístup k internetu, \" +\n\
-                        \"měření stále funguje, ale je přístupné pouze z lokální sítě.</br> \" +\n\
-                        \"Nastavení se dělá pouze jednou, po registraci zařízení na serveru.\";\n\
-                      let url = document.getElementById(\"url\").value;\n\
-                      let key = document.getElementById(\"key\").value;\n\
-                      d = {\"url\": url, \"key\": key};\n\
-                      showConfirmBox();\n\
-                    }\n\
-        </script>\n\
+          let caption = document.getElementById(\"capt\")\n\
+          if (\"caption\" in json) {\n\
+            caption.value = json[\"caption\"];\n\
+          }\n\
+          else {\n\
+            caption.placeholder = \"Name Me\";\n\
+          }\n\
+        });\n\
+      }\n\
 \n\
+      function showConfirmBox() {\n\
+        document.getElementById(\"overlay\").hidden = false;\n\
+      }\n\
+      function closeConfirmBox() {\n\
+        document.getElementById(\"overlay\").hidden = true;\n\
+      }\n\
+\n\
+      function isConfirm(answer) {\n\
+        if (answer) {\n\
+          let body =\"\";\n\
+          let first = true;\n\
+          for (const property in d) {\n\
+            if (!first) {\n\
+              body += \"&\";\n\
+            }\n\
+            first = false;\n\
+            body += `${property}=${d[property]}`;\n\
+          };\n\
+          console.log(body);\n\
+          fetch(\"set.php\", {\n\
+            method: 'POST',\n\
+            headers: {\n\
+              'Accept': '*/*',\n\
+              'Content-Type': 'application/x-www-form-urlencoded'\n\
+            },\n\
+            body: body\n\
+          });\n\
+          setTimeout(reload, 500);\n\
+        }\n\
+        closeConfirmBox();\n\
+      }\n\
+\n\
+      function saveCaption() {\n\
+        let capt = document.getElementById(\"capt\").value;\n\
+        d = {\"capt\": capt};\n\
+        isConfirm(true);\n\
+      }\n\
+\n\
+      function askNetwork() {\n\
+        document.getElementById(\"question\").innerText = \"Chceš skutečně měnit nastavení WiFi ?\";\n\
+        document.getElementById(\"hint\").innerHTML =\n\
+          \"Nastavení WiFi umožňuje připojit se k místní síti.</br>\" +\n\
+          \"Pokud je toto nastavení chybné, nebo není WiFi síť k dispozici, nemůže zařízení odesílat data na internet.</br>\" +\n\
+          \"V takovém přípaďě přejde zařízení do režimu AP (vytvoření vlastní sítě), aby bylo možné nastavení opravit.\";\n\
+        let ssid = document.getElementById(\"ssid\").value;\n\
+        let pwd = document.getElementById(\"pwd\").value;\n\
+        d = {\"ssid\":ssid, \"pwd\":pwd}\n\
+        showConfirmBox();\n\
+      }\n\
+\n\
+      function askMqtt() {\n\
+        document.getElementById(\"question\").innerText = \"Chceš skutečně měnit nastavení MQTT ?\";\n\
+        document.getElementById(\"hint\").innerHTML = \"Nastavení MQTT umožňuje odesílat hodnoty na server.\"\n\
+        let mqtt_ip = document.getElementById(\"mqtt_ip\").value;\n\
+        let mqtt_topic = document.getElementById(\"mqtt_topic\").value;\n\
+        let mqtt_usr = document.getElementById(\"mqtt_usr\").value;\n\
+        let mqtt_pwd = document.getElementById(\"mqtt_pwd\").value;\n\
+        d = {\"mqtt_ip\":mqtt_ip, \"mqtt_topic\":mqtt_topic, \"mqtt_usr\":mqtt_usr, \"mqtt_pwd\":mqtt_pwd}\n\
+        showConfirmBox();\n\
+      }\n\
+\n\
+      function askServer() {\n\
+        document.getElementById(\"question\").innerText = \"Chceš skutečně měnit nastavení serveru ?\";\n\
+        document.getElementById(\"hint\").innerHTML =\n\
+          \"Nastavení vzdáleného serveru udává, kam se odesílají data ze zařízení.</br>\" +\n\
+          \"Pokud je toto nastavení chybné, nebo nemá zařízení přístup k internetu, \" +\n\
+          \"měření stále funguje, ale je přístupné pouze z lokální sítě.</br> \" +\n\
+          \"Nastavení se dělá pouze jednou, po registraci zařízení na serveru.\";\n\
+        let url = document.getElementById(\"url\").value;\n\
+        let key = document.getElementById(\"key\").value;\n\
+        d = {\"url\": url, \"key\": key};\n\
+        showConfirmBox();\n\
+      }\n\
+    </script>\n\
   </body>\n\
 </html>\n\
 ";

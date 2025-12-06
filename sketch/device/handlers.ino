@@ -45,6 +45,10 @@ void handleSet() {
     Serial.print("  "); Serial.println(conf.key);
   }
 
+  if (server.hasArg("mqtt_ip")) {
+    
+  }
+
   if (res) {
     eesave(EEPROM_CONF_ADDR, &conf, sizeof(conf));
   }
