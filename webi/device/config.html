@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <title>Settings</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <!--<link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>-->
   </head>
   <body onload="reload()">
     <div class="overlay" id="overlay" hidden>
@@ -19,6 +19,7 @@
     </div>
 
     <h1>Nastavení</h1>
+
     <h2>Titulek</h2>
     <form action="" method="post" class="cSettings">
 	    <div class="cSettings">
@@ -27,8 +28,8 @@
 	    </div>
     </form>
     <button onclick="saveCaption()">Uložit</button>
+
     <h2>WiFi<span id="wifi"></span></h2>
-    <div>
     <form action="" method="post" class="cSettings">
       <div class="cSettings">
         <label for="ssid">SSID sítě: </label>
@@ -40,10 +41,29 @@
       </div>
     </form>
     <button onclick="askNetwork()">Potvrdit</button>
-    </div>
+
+    <h2>MQTT<span id="mqtt"></span></h2>
+    <form action="" method="post" class="cSettings">
+      <div class="cSettings">
+        <label for="mqtt_ip">IP adresa MQTT serveru: </label>
+        <input type="text" name="mqtt_ip" id="mqtt_ip" required>
+      </div>
+      <div class="cSettings">
+        <label for="mqtt_topic">Topic: </label>
+        <input type="text" name="mqtt_topic" id="mqtt_topic" required>
+      </div>
+      <div class="cSettings">
+        <label for="mqtt_usr">Uživatel: </label>
+        <input type="text" name="mqtt_usr" id="mqtt_usr" required>
+      </div>
+      <div class="cSettings">
+        <label for="mqtt_pwd">Heslo: </label>
+        <input type="password" name="mqtt_pwd" id="mqtt_pwd" required>
+      </div>
+    </form>
+    <button onclick="askMqtt()">Potvrdit</button>
 
     <h2>Server<span id="server"></span></h2>
-    <div>
     <form action="" method="post" class="cSettings">
       <div class="cSettings">
         <label for="url">URL serveru: </label>
@@ -55,113 +75,160 @@
       </div>
     </form>
     <button onclick="askServer()">Potvrdit</button>
-    </div>
 
     <button onclick="reload()">Vrátit změny</button>
     <div>
       <a href="index.html">Zpět</a>
     </div>
 
-        <script>
-          var d = {};
+    <script>
+      var d = {};
 
-          function reload() {
-                      fetch("config.json", {cache: "no-store"})
-                        .then((response) => response.json())
-                        .then((json) => {
-                                    //console.log(json);
-                                    let key = document.getElementById("key");
-                                    let url = document.getElementById("url");
-                                    key.value = "";
-                                    url.value = json["url"];
-                                    if (json["url"] != "") {
-                                                key.placeholder = "********";
-                                              }
-                                    else {
-                                                key.placeholder = "123456";
-                                                url.placeholder = "http://www.mujserver.cz/datain.php";
-                                              }
-                                    let ssid = document.getElementById("ssid");
-                                    let pwd = document.getElementById("pwd");
-                                    pwd.value = "";
-                                    ssid.value = json["ssid"];
-                                    if (json["ssid"] != "") {
-                                                pwd.placeholder = "********";
-                                              }
-                                    else {
-                                                pwd.placeholder = "123456";
-                                                ssid.placeholder = "uNasDoma";
-                                              }
-                                    if (json["wifi"]) 
-                                      document.getElementById("wifi").innerText = " OK";
-                                    if (json["server"])
-                                      document.getElementById("server").innerText = " OK";
-				    document.getElementById("capt").value = json["caption"]
-                                  });
+      function reload() {
+        fetch("config.json", {cache: "no-store"})
+        .then((response) => response.json())
+        .then((json) => {
+          //console.log(json);
+          let key = document.getElementById("key");
+          let url = document.getElementById("url");
+          key.value = "";
+          url.value = json["url"];
+          if (json["url"] != "") {
+                      key.placeholder = "********";
                     }
+          else {
+                      key.placeholder = "123456";
+                      url.placeholder = "http://www.mujserver.cz/datain.php";
+                    }
+          let ssid = document.getElementById("ssid");
+          let pwd = document.getElementById("pwd");
+          pwd.value = "";
+          ssid.value = json["ssid"];
+          if (json["ssid"] != "") {
+            pwd.placeholder = "********";
+          }
+          else {
+            pwd.placeholder = "123456";
+            ssid.placeholder = "uNasDoma";
+          }
 
-          function showConfirmBox() {
-                      document.getElementById("overlay").hidden = false;
-                    }
-          function closeConfirmBox() {
-                      document.getElementById("overlay").hidden = true;
-                    }
+          if (json["wifi"]) 
+            document.getElementById("wifi").innerText = " OK";
+          if (json["server"])
+            document.getElementById("server").innerText = " OK";
+          if (json["mqtt"])
+            document.getElementById("mqtt").innerText = " OK";
 
-          function isConfirm(answer) {
-                      if (answer) {
-				  let body ="";
-				  let first = true;
-			          for (const property in d) {
-				        if (!first) {
-					 	body += "&";
-					}
-					first = false;
-							  body += `${property}=${d[property]}`;
-						  };
-				  console.log(body);
-                                  fetch("set.php", {
-                                              method: 'POST',
-                                              headers: {
-                                                          'Accept': '*/*',
-                                                          'Content-Type': 'application/x-www-form-urlencoded'
-                                                        },
-                                              body: body
-                                            });
-                                  setTimeout(reload, 500);
-                                }
-                      closeConfirmBox();
-                    }
+          let mqtt_ip = document.getElementById("mqtt_ip");
+          let mqtt_topic = document.getElementById("mqtt_topic");
+          let mqtt_usr = document.getElementById("mqtt_usr");
+          let mqtt_pwd = document.getElementById("mqtt_pwd");
+          if ("mqtt_ip" in json) {
+            mqtt_ip.value = json["mqtt_ip"];
+          }
+          else {
+            mqtt_ip.placeholder = "192.168.42.123"
+          }
+          if ("mqtt_topic" in json) {
+            mqtt_topic.value = json["mqtt_topic"];
+          }
+          else {
+            mqtt_topic.placeholder = "/home/my_temp";
+          }
 
-	function saveCaption() {
-				let capt = document.getElementById("capt").value;
-				d = {"capt": capt};
-				isConfirm(true);
-			}
+          mqtt_pwd.value = "";
+          if ("mqtt_usr" in json) {
+            mqtt_usr.value = json["mqtt_usr"];
+            mqtt_pwd.placeholder = "********";
+          }
+          else {
+            mqtt_pwd.placeholder = "mqttPassword";
+            mqtt_usr.placeholder = "mqttUser";
+          }
 
-          function askNetwork() {
-                      document.getElementById("question").innerText = "Chceš skutečně měnit nastavení WiFi ?";
-                      document.getElementById("hint").innerHTML =
-                        "Nastavení WiFi umožňuje připojit se k místní síti.</br>" +
-                        "Pokud je toto nastavení chybné, nebo není WiFi síť k dispozici, nemůže zařízení odesílat data na internet.</br>" +
-                        "V takovém přípaďě přejde zařízení do režimu AP (vytvoření vlastní sítě), aby bylo možné nastavení opravit.";
-                      let ssid = document.getElementById("ssid").value;
-                      let pwd = document.getElementById("pwd").value;
-                      d = {"ssid":ssid, "pwd":pwd}
-                      showConfirmBox();
-                    }
-          function askServer() {
-                      document.getElementById("question").innerText = "Chceš skutečně měnit nastavení serveru ?";
-                      document.getElementById("hint").innerHTML =
-                        "Nastavení vzdáleného serveru udává, kam se odesílají data ze zařízení.</br>" +
-                        "Pokud je toto nastavení chybné, nebo nemá zařízení přístup k internetu, " +
-                        "měření stále funguje, ale je přístupné pouze z lokální sítě.</br> " +
-                        "Nastavení se dělá pouze jednou, po registraci zařízení na serveru.";
-                      let url = document.getElementById("url").value;
-                      let key = document.getElementById("key").value;
-                      d = {"url": url, "key": key};
-                      showConfirmBox();
-                    }
-        </script>
+          let caption = document.getElementById("capt")
+          if ("caption" in json) {
+            caption.value = json["caption"];
+          }
+          else {
+            caption.placeholder = "Name Me";
+          }
+        });
+      }
 
+      function showConfirmBox() {
+        document.getElementById("overlay").hidden = false;
+      }
+      function closeConfirmBox() {
+        document.getElementById("overlay").hidden = true;
+      }
+
+      function isConfirm(answer) {
+        if (answer) {
+          let body ="";
+          let first = true;
+          for (const property in d) {
+            if (!first) {
+              body += "&";
+            }
+            first = false;
+            body += `${property}=${d[property]}`;
+          };
+          console.log(body);
+          fetch("set.php", {
+            method: 'POST',
+            headers: {
+              'Accept': '*/*',
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: body
+          });
+          setTimeout(reload, 500);
+        }
+        closeConfirmBox();
+      }
+
+      function saveCaption() {
+        let capt = document.getElementById("capt").value;
+        d = {"capt": capt};
+        isConfirm(true);
+      }
+
+      function askNetwork() {
+        document.getElementById("question").innerText = "Chceš skutečně měnit nastavení WiFi ?";
+        document.getElementById("hint").innerHTML =
+          "Nastavení WiFi umožňuje připojit se k místní síti.</br>" +
+          "Pokud je toto nastavení chybné, nebo není WiFi síť k dispozici, nemůže zařízení odesílat data na internet.</br>" +
+          "V takovém přípaďě přejde zařízení do režimu AP (vytvoření vlastní sítě), aby bylo možné nastavení opravit.";
+        let ssid = document.getElementById("ssid").value;
+        let pwd = document.getElementById("pwd").value;
+        d = {"ssid":ssid, "pwd":pwd}
+        showConfirmBox();
+      }
+
+      function askMqtt() {
+        document.getElementById("question").innerText = "Chceš skutečně měnit nastavení MQTT ?";
+        document.getElementById("hint").innerHTML = "Nastavení MQTT umožňuje odesílat hodnoty na server."
+        let mqtt_ip = document.getElementById("mqtt_ip").value;
+        let mqtt_topic = document.getElementById("mqtt_topic").value;
+        let mqtt_usr = document.getElementById("mqtt_usr").value;
+        let mqtt_pwd = document.getElementById("mqtt_pwd").value;
+        d = {"mqtt_ip":mqtt_ip, "mqtt_topic":mqtt_topic, "mqtt_usr":mqtt_usr, "mqtt_pwd":mqtt_pwd}
+        showConfirmBox();
+      }
+
+      function askServer() {
+        document.getElementById("question").innerText = "Chceš skutečně měnit nastavení serveru ?";
+        document.getElementById("hint").innerHTML =
+          "Nastavení vzdáleného serveru udává, kam se odesílají data ze zařízení.</br>" +
+          "Pokud je toto nastavení chybné, nebo nemá zařízení přístup k internetu, " +
+          "měření stále funguje, ale je přístupné pouze z lokální sítě.</br> " +
+          "Nastavení se dělá pouze jednou, po registraci zařízení na serveru.";
+        let url = document.getElementById("url").value;
+        let key = document.getElementById("key").value;
+        d = {"url": url, "key": key};
+        showConfirmBox();
+      }
+    </script>
   </body>
 </html>
