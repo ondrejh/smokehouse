@@ -33,6 +33,30 @@ void handleSet() {
     Serial.print("  "); Serial.println(conf.pwd);
   }
 
+  // set MQTT
+  if (server.hasArg("mqtt_ip")) {
+    server.arg("mqtt_ip").toCharArray(conf.mqtt_ip, URL_STR_MAX);
+    conf.ssid[URL_STR_MAX] = '\0';
+    if (server.hasArg("mqtt_topic")) {
+      server.arg("mqtt_topic").toCharArray(conf.mqtt_topic, URL_STR_MAX);
+      conf.mqtt_topic[URL_STR_MAX] = '\0';
+    }
+    else {
+      // default topic
+      sprintf(conf.mqtt_topic, "home/%s", idstr);
+    }
+    if (server.hasArg("mqtt_usr") && server.hasArg("mqtt_pwd")) {
+      server.arg("mqtt_usr").toCharArray(conf.mqtt_user, CAPT_STR_MAX);
+      server.arg("mqtt_pwd").toCharArray(conf.mqtt_pwd, PWD_STR_MAX);
+    }
+    else {
+      // default no user
+      conf.mqtt_user[0] = '\0';
+    }
+    res = true;
+  }
+
+
   // set server
   if (server.hasArg("url") && server.hasArg("key")) {
     server.arg("url").toCharArray(conf.url, URL_STR_MAX);
@@ -98,11 +122,39 @@ void handleConf() {
   p = sprintf(msg, "{\"ssid\":\"%s\",", conf.ssid);
   p += sprintf(&msg[p], "\"url\":\"%s\",", conf.url);
   p += sprintf(&msg[p], "\"caption\":\"%s\",", conf.capt);
+  p += sprintf(&msg[p], "\"mqtt_ip\":\"%s\",", conf.mqtt_ip); // mqtt_ip (should be url)
+  // mqtt_topic
+  // mqtt_usr
+  // mqtt_pwd
   p += sprintf(&msg[p], "\"wifi\":%s,", ap_mode ? "false" : "true");
   p += sprintf(&msg[p], "\"server\":%s}", server_status ? "true" : "false");
 
+  // caption
+  String s = "{\"caption\":\"" + (String)conf.capt + "\",";
+  
+  // wifi
+  s += "\"ssid\":\"" + String(conf.ssid) + "\",";
+
+  // mqtt
+  if (conf.mqtt_ip[0] != '\0') {
+    s += "\"mqtt_ip\":\"" + String(conf.mqtt_ip) + "\",";
+    s += "\"mqtt_topic\":\"" + String(conf.mqtt_topic) + "\",";
+    if (conf.mqtt_user[0] != '\0') {
+      s += "\"mqtt_usr\":\"" + String(conf.mqtt_user) + "\",";
+    }
+  }
+
+  // remote server
+  s += "\"url\":\"" + String(conf.url) + "\",";
+
+  // online statuses
+  s += "\"wifi\":" + String(ap_mode ? "false" : "true") + ",";
+  s += "\"server\":" + String(server_status ? "true" : "false") + ",";
+  s += "\"mqtt\":" + String(mqtt_status ? "true" : "false") + "}";
+
   jsonHeader();
-  server.send(200, "application/json", msg);
+  //server.send(200, "application/json", msg);
+  server.send(200, "application/json", s.c_str());
 }
 
 void handleNotFound() {

@@ -13,8 +13,6 @@
 #include "button.h"
 #include "webi.h"
 
-#include "secrets.h"
-
 #define TEMP_READ_PERIOD_MS 5000
 #define DISPLAY_CYCLE_PERIOD_MS 10000
 #define BUTTON_PRESS_CYCLE_PAUSE_MS 15000
@@ -68,8 +66,7 @@ typedef struct {
 config_t conf;
 
 // home assistant mqtt
-const char* mqttHost = "homeassistant.local";    // hostname
-const int   mqttPort = 1883;
+const int MQTT_PORT = 1883;
 
 // Use software SPI: CS, DI, DO, CLK
 //Adafruit_MAX31865 thermo = Adafruit_MAX31865(D8, D7, D6, D5); // 10k pulldown on D8
@@ -79,6 +76,7 @@ Adafruit_MAX31865 thermo2 = Adafruit_MAX31865(0, 13, 12, 14);
 Button btn = Button(btnPin);
 bool ap_mode = false;
 bool server_status = false;
+bool mqtt_status = false;
 
 WiFiClient client;
 WiFiClientSecure clientSecure;
@@ -92,11 +90,26 @@ void mqtt_reconnect() {
     Serial.print("Connecting to MQTT... ");
 
     // CONNECT WITH USER + PASSWORD
-    if (mqttClient.connect(idstr, mqttUser, mqttPassword)) {
-      Serial.println("connected!");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.println(mqttClient.state());
+    if (conf.mqtt_user[0]!='\0') {
+      //if (mqttClient.connect(idstr, mqttUser, mqttPassword)) {
+      if (mqttClient.connect(idstr, conf.mqtt_user, conf.mqtt_pwd)) {
+        Serial.println("connected!");
+      }
+      else {
+        Serial.print("failed, rc=");
+        Serial.println(mqttClient.state());
+      }
+    }
+
+    // CONNECT (NO USER)
+    else {
+      if (mqttClient.connect(idstr)) {
+        Serial.println("connected!");
+      }
+      else {
+        Serial.print("failed, rc=");
+        Serial.println(mqttClient.state());
+      }
     }
   }
 }
@@ -221,6 +234,7 @@ void setup(void) {
       Serial.print(".");
     }
     Serial.println("");
+    
     if (!ap_mode) {
       strncpy(disp_ssid, conf.ssid, 32);
       disp_ip = WiFi.localIP();
@@ -228,32 +242,26 @@ void setup(void) {
       Serial.println(disp_ssid);
       Serial.print("IP address: ");
       Serial.println(disp_ip);//WiFi.localIP());
+
+      // Resolve broker hostname
+      if (conf.mqtt_ip[0] != '\0') {
+        //if (WiFi.hostByName("homeassistant.local", brokerIP)) {
+        if (WiFi.hostByName(conf.mqtt_ip, brokerIP)) {
+          Serial.print("MQTT server: ");
+          Serial.print(brokerIP);
+          Serial.print(":");
+          Serial.println(MQTT_PORT);
+          mqttClient.setServer(brokerIP, MQTT_PORT);
+        } else {
+          Serial.println("Resolve failed");
+        }
+      }
     }
     else {
       Serial.print("Can't connect to ");
       Serial.println(conf.ssid);
     }
 
-    // Resolve Home Assistant hostname
-    IPAddress haIP;
-    /*if (MDNS.begin(idstr)) {   // start mDNS
-      if (MDNS.queryHost("homeassistant.local")) {
-        haIP = MDNS.queryHost("homeassistant.local");
-        Serial.print("Home Assistant IP: ");
-        Serial.println(haIP);
-      } else {
-        Serial.println("Home Assistant not found via mDNS");
-      }
-    }*/
-    if (WiFi.hostByName("homeassistant.local", brokerIP)) {
-      Serial.print("MQTT server: ");
-      Serial.print(brokerIP);
-      Serial.print(":");
-      Serial.println(mqttPort);
-      mqttClient.setServer(brokerIP, mqttPort);
-    } else {
-      Serial.println("Resolve failed");
-    }
   }
   if (ap_mode) {
     display_apmode();
@@ -268,9 +276,9 @@ void setup(void) {
     Serial.println(disp_ip);
   }
 
-  /*if (MDNS.begin(idstr)) {
+  if (MDNS.begin(idstr)) {
     Serial.println("MDNS responder started");
-  }*/
+  }
 
   server.on("/", handleRoot);
   server.on("/index.html", handleRoot);
@@ -351,47 +359,68 @@ void loop(void) {
     refresh = false;
   }
 
-  static uint32_t pushT = now;
-  if ((now - pushT) >= SERVER_SEND_PERIOD_MS) {
+  if (!ap_mode) {
     if (conf.url[0] != '\0') {
-      display_transfer();
-      server_status = push_data_to_server();
-      refresh = true;
+      static uint32_t pushT = now;
+      if ((now - pushT) >= SERVER_SEND_PERIOD_MS) {
+        if (conf.url[0] != '\0') {
+          display_transfer();
+          server_status = push_data_to_server();
+          refresh = true;
+        }
+        pushT = millis();
+      }
     }
-    pushT = millis();
-  }
-
-  static uint32_t pushM = now;
-  if ((now - pushM) >= MQTT_SEND_PERIOD_MS) {
-    if (!mqttClient.connected()) {
-      mqtt_reconnect();
+    else {
+      server_status = false;
     }
-    if (mqttClient.connected()) {
-      String t1 = temp2string(temp[0], valid[0]);
-      String t2 = temp2string(temp[1], valid[1]);
 
-      // Create JSON payload
-      //String json = "{";
-      //json += "\"t1\": ";
-      //json += temp2string(temp[0], valid[0]);
-      //json += ",\"t2\": ";
-      //json += temp2string(temp[1], valid[1]);
-      //json += "}";
+    if (conf.mqtt_ip[0] != '\0') {
+      static uint32_t pushM = now;
+      if ((now - pushM) >= MQTT_SEND_PERIOD_MS) {
+        if (!mqttClient.connected()) {
+          mqtt_reconnect();
+        }
+        if (mqttClient.connected()) {
+          mqtt_status = true;
+          String t1 = temp2string(temp[0], valid[0]);
+          String t2 = temp2string(temp[1], valid[1]);
 
-      // publish json
-      //mqttClient.publish(mqttTopic, json.c_str());
+          // Create JSON payload
+          //String json = "{";
+          //json += "\"t1\": ";
+          //json += t1);
+          //json += ",\"t2\": ";
+          //json += t2);
+          //json += "}";
 
-      // publish
-      mqttClient.publish(((String)mqttTopic + "/t1").c_str(), t1.c_str());
-      mqttClient.publish(((String)mqttTopic + "/t2").c_str(), t2.c_str());
-      mqttClient.loop();
+          // publish json
+          //mqttClient.publish(mqttTopic, json.c_str());
 
-      Serial.print("Publish: ");
-      //Serial.println(json);
-      Serial.print(t1);
-      Serial.print(", ");
-      Serial.println(t2);
+          Serial.print("Publish: ");
+          //Serial.println(json);
+
+          // publish
+          mqttClient.publish(((String)conf.mqtt_topic + "/t1").c_str(), t1.c_str());
+          mqttClient.publish(((String)conf.mqtt_topic + "/t2").c_str(), t2.c_str());
+          mqttClient.loop();
+
+          Serial.print(t1);
+          Serial.print(", ");
+          Serial.println(t2);
+        }
+        else {
+          mqtt_status = false;
+        }
+        pushM = millis();
+      }
     }
-    pushM = millis();
+    else {
+      mqtt_status = false;
+    }
+  } // !ap_mode
+  else {
+    server_status = false;
+    mqtt_status = false;
   }
 }
