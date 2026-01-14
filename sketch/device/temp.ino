@@ -7,21 +7,20 @@
 #define AVGLEN 8
 
 String temp2string(int temp, bool valid) {
+  if (!valid)
+    return "null";
+
+  int absTemp = abs(temp);
+  int t = absTemp / 10;
+  int dt = absTemp % 10;
+
   String msg = "";
-  if (valid) {
-    int t = temp / 10;
-    int dt;
-    if (temp >= 0)
-      dt = temp - t * 10;
-    else
-      dt = -temp + t * 10;
-    msg += t;
-    msg += ".";
-    msg += dt;
-  }
-  else {
-    msg += "\"null\"";
-  }
+  if (temp < 0)
+    msg += "-";
+  msg += t;
+  msg += ".";
+  msg += dt;
+
   return msg;
 }
 
